@@ -145,7 +145,7 @@ class KeywordHarvester {
     console.log(`✅ 실시간 트렌드 ${realTimeTrends.length}개 수집 완료`);
 
     // 2. 이미 사용된 키워드 가져오기
-    const usedKeywords = await this.db.getUsedKeywords();
+    const usedKeywords = await this.db.loadUsedKeywords();
     console.log(`📋 이미 사용된 키워드: ${usedKeywords.length}개`);
 
     // 3. 필터링: 사용되지 않은 키워드만 선택
