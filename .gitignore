@@ -117,7 +117,6 @@ src/data/
 src/logs/
 *.json.bak
 *.csv.bak
-data/keywords/
 test-*.js
 check-*.js
 blogger-diagnostic.js
