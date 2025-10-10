@@ -22,28 +22,30 @@ class TrendKeywordCollector {
     const allKeywords = [];
 
     try {
-      // 병렬로 수집하여 속도 향상
+      // 병렬로 수집하여 속도 향상 (소스 추가)
       const results = await Promise.allSettled([
         this.getNaverTrends(),
         this.getGoogleTrendsViaAI(),
         this.getRedditHotTopics(),
-        this.getHackerNewsTopics()
+        this.getHackerNewsTopics(),
+        this.getTechCrunchTopics(),
+        this.getProductHuntTopics()
       ]);
 
-      // 각 소스에서 최대 3개씩만 수집
+      // 각 소스에서 최대 5개씩 수집 (3개 → 5개로 증가)
       results.forEach((result, index) => {
         if (result.status === 'fulfilled' && result.value) {
-          const sourceName = ['네이버', 'Google', 'Reddit', 'Hacker News'][index];
+          const sourceName = ['네이버', 'Google', 'Reddit', 'Hacker News', 'TechCrunch', 'Product Hunt'][index];
           console.log(`✅ ${sourceName}: ${result.value.length}개`);
-          allKeywords.push(...result.value.slice(0, 3));
+          allKeywords.push(...result.value.slice(0, 5));
         }
       });
 
       console.log(`✅ 총 ${allKeywords.length}개의 트렌드 키워드 수집 완료`);
       
-      // 중복 제거 및 상위 15개 선택
+      // 중복 제거 및 상위 30개 선택 (15개 → 30개로 증가)
       const uniqueKeywords = [...new Set(allKeywords)];
-      return uniqueKeywords.slice(0, 15);
+      return uniqueKeywords.slice(0, 30);
 
     } catch (error) {
       console.error('실시간 검색어 수집 실패:', error.message);
@@ -244,7 +246,104 @@ Return only 5 specific topic names in English, one per line.
     }
   }
 
-  // Twitter/X Trends는 제거 (API 할당량 절약)
+  /**
+   * TechCrunch 최신 기사 제목 수집
+   * @returns {Promise<Array>} 키워드 배열
+   */
+  async getTechCrunchTopics() {
+    try {
+      console.log('📰 TechCrunch 수집 중...');
+      
+      // Gemini AI로 TechCrunch 스타일 트렌드 생성
+      const prompt = `
+Generate 5 SPECIFIC trending technology topics similar to TechCrunch headlines.
+
+Focus on:
+- Technology: Startups, AI, Software, Hardware, SaaS
+- Finance: Venture Capital, IPO, Funding, FinTech
+
+Requirements:
+1. Must be SPECIFIC and REAL-SOUNDING topics (not generic categories)
+2. Include company names, product names, or specific technologies
+3. Each topic should be 5-15 words
+4. Focus on breaking news or major announcements
+5. NO generic phrases like "AI and Machine Learning"
+
+Examples:
+- "Anthropic Raises $750M Series C for Claude AI Development"
+- "Stripe Acquires Bridge for $1.1B in Crypto Infrastructure Push"
+- "OpenAI Launches GPT-5 with Enhanced Reasoning Capabilities"
+
+Return ONLY the 5 topics, one per line, NO numbers, NO explanations.
+`;
+
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      const keywords = text
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 10 && line.length < 150);
+      
+      console.log(`✅ TechCrunch 키워드 ${keywords.length}개 수집`);
+      return keywords;
+
+    } catch (error) {
+      console.warn('TechCrunch 수집 실패:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * Product Hunt 트렌딩 제품 수집
+   * @returns {Promise<Array>} 키워드 배열
+   */
+  async getProductHuntTopics() {
+    try {
+      console.log('🚀 Product Hunt 수집 중...');
+      
+      // Gemini AI로 Product Hunt 스타일 트렌드 생성
+      const prompt = `
+Generate 5 SPECIFIC trending products similar to Product Hunt launches.
+
+Focus on:
+- Technology: AI Tools, Developer Tools, Productivity Apps, SaaS Products
+- Categories: Design, Marketing, Finance, Automation, Analytics
+
+Requirements:
+1. Must be SPECIFIC product names or product types (not generic categories)
+2. Include the product category or main feature
+3. Each topic should be 5-15 words
+4. Focus on innovative or trending products
+5. NO generic phrases like "Productivity Tools"
+
+Examples:
+- "Cursor AI Code Editor with GPT-4 Integration"
+- "Perplexity AI Search Engine Raises $73M Series B"
+- "Linear Issue Tracking System Reaches 10K Companies"
+- "Notion AI Writing Assistant General Availability"
+
+Return ONLY the 5 product topics, one per line, NO numbers, NO explanations.
+`;
+
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      const keywords = text
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 10 && line.length < 150);
+      
+      console.log(`✅ Product Hunt 키워드 ${keywords.length}개 수집`);
+      return keywords;
+
+    } catch (error) {
+      console.warn('Product Hunt 수집 실패:', error.message);
+      return [];
+    }
+  }
 
   /**
    * 키워드 필터링 및 우선순위 지정
@@ -309,21 +408,27 @@ Return only 5 specific topic names in English, one per line.
       // 기술 관련 키워드 (더 넓은 범위로 확장)
       const isTech = (
         // AI/ML 관련
-        keywordLower.match(/\b(ai|artificial intelligence|machine learning|deep learning|neural|chatgpt|gpt|claude|gemini|openai|anthropic|midjourney|stable diffusion|llm|transformer)\b/i) ||
-        // 개발/프로그래밍
-        keywordLower.match(/\b(github|gitlab|docker|kubernetes|react|vue|angular|next\.?js|typescript|javascript|python|rust|go|java|swift|kotlin|programming|code|developer|software|framework|library|api)\b/i) ||
+        keywordLower.match(/\b(ai|artificial intelligence|machine learning|deep learning|neural|chatgpt|gpt|claude|gemini|openai|anthropic|midjourney|stable diffusion|llm|transformer|model)\b/i) ||
+        // IT 일반
+        keywordLower.match(/\b(it|information technology|tech|technology|digital|innovation|startup|saas|paas|iaas)\b/i) ||
+        // 소프트웨어/개발
+        keywordLower.match(/\b(software|program|application|app|system|platform|service|tool|github|gitlab|docker|kubernetes|react|vue|angular|next\.?js|typescript|javascript|python|rust|go|java|swift|kotlin|programming|code|developer|framework|library|api|opensource|linux|windows|macos)\b/i) ||
         // 하드웨어/가젯
-        keywordLower.match(/\b(iphone|galaxy|pixel|macbook|airpods|vision pro|apple watch|samsung|google|apple|microsoft|nvidia|rtx|geforce|amd|ryzen|intel|core|chip|processor|gpu|cpu|hardware|semiconductor)\b/i) ||
+        keywordLower.match(/\b(iphone|galaxy|pixel|macbook|airpods|vision pro|apple watch|samsung|google|apple|microsoft|nvidia|rtx|geforce|amd|ryzen|intel|core|chip|processor|gpu|cpu|hardware|semiconductor|electronics|gadget|device)\b/i) ||
         // 클라우드/인프라
-        keywordLower.match(/\b(aws|azure|gcp|cloud|vercel|netlify|cloudflare|supabase|devops|ci\/cd|serverless)\b/i) ||
+        keywordLower.match(/\b(aws|azure|gcp|cloud|vercel|netlify|cloudflare|supabase|devops|ci\/cd|serverless|container|virtual|hosting)\b/i) ||
         // 보안
-        keywordLower.match(/\b(zero-day|ransomware|phishing|vulnerability|cve-|exploit|security|cybersecurity|hack|breach|encryption)\b/i) ||
+        keywordLower.match(/\b(zero-day|ransomware|phishing|vulnerability|cve-|exploit|security|cybersecurity|hack|breach|encryption|malware|virus|firewall|vpn)\b/i) ||
         // 데이터/분석
-        keywordLower.match(/\b(data|database|analytics|big data|sql|nosql|mongodb|postgresql|redis)\b/i) ||
+        keywordLower.match(/\b(data|database|analytics|big data|sql|nosql|mongodb|postgresql|redis|spark|hadoop|etl|bi|visualization)\b/i) ||
         // 웹/모바일
-        keywordLower.match(/\b(web|mobile|ios|android|app|website|frontend|backend|fullstack)\b/i) ||
+        keywordLower.match(/\b(web|mobile|ios|android|app|website|frontend|backend|fullstack|responsive|pwa|native)\b/i) ||
+        // 네트워크/통신
+        keywordLower.match(/\b(network|internet|wifi|5g|6g|broadband|fiber|latency|bandwidth|protocol)\b/i) ||
         // 기타 IT 트렌드
-        keywordLower.match(/\b(metaverse|vr|ar|xr|blockchain|nft|quantum|5g|6g|iot|edge computing)\b/i)
+        keywordLower.match(/\b(metaverse|vr|ar|xr|blockchain|nft|quantum|iot|edge computing|robotics|automation|drone)\b/i) ||
+        // 게임/엔터테인먼트
+        keywordLower.match(/\b(gaming|game|console|playstation|xbox|nintendo|steam|esports|streaming)\b/i)
       );
       
       // 금융 관련 키워드 (더 넓은 범위로 확장)
