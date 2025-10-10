@@ -1,7 +1,7 @@
 # 🚀 GitHub 저장소 설정 가이드
 
 ## 📦 GitHub 저장소 정보
-**저장소 URL**: https://github.com/mhsssshin/Rodangdong_blog.git
+**저장소 URL**: https://github.com/junsia694/rodangdong.git
 
 ## 🔧 초기 설정 (최초 1회)
 
@@ -12,7 +12,7 @@
 git init
 
 # 원격 저장소 추가
-git remote add origin https://github.com/mhsssshin/Rodangdong_blog.git
+git remote add origin https://github.com/junsia694/rodangdong.git
 
 # 원격 저장소 확인
 git remote -v
@@ -50,7 +50,7 @@ git push -u origin main
 
 ### GitHub 웹사이트에서 설정
 
-1. **저장소 접속**: https://github.com/mhsssshin/Rodangdong_blog
+1. **저장소 접속**: https://github.com/junsia694/rodangdong
 2. **Settings** 탭 클릭
 3. **Secrets and variables** → **Actions** 클릭
 4. **New repository secret** 클릭
@@ -277,4 +277,4 @@ node scripts/github-actions-blog.js
 
 **이제 GitHub Actions가 자동으로 블로그를 운영합니다!** 🎉
 
-**저장소**: https://github.com/mhsssshin/Rodangdong_blog.git
+**저장소**: https://github.com/junsia694/rodangdong.git
