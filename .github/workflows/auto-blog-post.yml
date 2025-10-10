@@ -1,0 +1,75 @@
+name: Auto Blog Post
+
+on:
+  schedule:
+    # 0시 17분
+    - cron: '17 0 * * *'
+    # 3시 49분
+    - cron: '49 3 * * *'
+    # 6시 17분
+    - cron: '17 6 * * *'
+    # 9시 49분
+    - cron: '49 9 * * *'
+    # 12시 17분
+    - cron: '17 12 * * *'
+    # 15시 49분
+    - cron: '49 15 * * *'
+    # 18시 17분
+    - cron: '17 18 * * *'
+    # 21시 49분
+    - cron: '49 21 * * *'
+  
+  workflow_dispatch: # 수동 실행 가능
+
+jobs:
+  generate-and-post:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Create .env file
+        run: |
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> .env
+          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+          echo "GOOGLE_REFRESH_TOKEN=${{ secrets.GOOGLE_REFRESH_TOKEN }}" >> .env
+          echo "BLOGGER_BLOG_ID=${{ secrets.BLOGGER_BLOG_ID }}" >> .env
+          echo "UNSPLASH_ACCESS_KEY=${{ secrets.UNSPLASH_ACCESS_KEY }}" >> .env
+          echo "PEXELS_API_KEY=${{ secrets.PEXELS_API_KEY }}" >> .env
+          echo "PIXABAY_API_KEY=${{ secrets.PIXABAY_API_KEY }}" >> .env
+          
+      - name: Generate and Post Blog
+        id: blog_post
+        run: |
+          node scripts/github-actions-blog.js
+          
+      - name: Upload Tistory HTML
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: tistory-html-${{ github.run_number }}
+          path: generated-content/tistory/*.html
+          retention-days: 30
+          
+      - name: Commit used keywords
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/keywords/
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update used keywords [skip ci]"
+          
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
