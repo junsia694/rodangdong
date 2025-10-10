@@ -9,7 +9,7 @@ import path from 'path';
  * GitHub Actions용 블로그 자동화 스크립트
  * - 새로운 키워드 1개 선택
  * - 블로그 콘텐츠 생성
- * - Blogger에 Draft로 게시
+ * - Blogger에 즉시 게시
  * - 티스토리용 HTML 파일 생성
  */
 class GitHubActionsBlog {
@@ -64,13 +64,13 @@ class GitHubActionsBlog {
       console.log(`✅ 번역 완료`);
       console.log(`   - 한글 제목: ${koreanTitle}`);
       
-      // 4단계: Blogger에 Draft로 게시
-      console.log('\n📤 4단계: Blogger Draft 게시 중...');
-      const publishedPost = await this.bloggerPublisher.publishPost(article, true);
+      // 4단계: Blogger에 즉시 게시
+      console.log('\n📤 4단계: Blogger 즉시 게시 중...');
+      const publishedPost = await this.bloggerPublisher.publishPost(article, false);
       
-      console.log(`✅ Blogger Draft 게시 완료`);
+      console.log(`✅ Blogger 게시 완료`);
       console.log(`   - Post ID: ${publishedPost.postId}`);
-      console.log(`   - Draft URL: ${publishedPost.url || 'Draft 상태'}`);
+      console.log(`   - 게시 URL: ${publishedPost.url}`);
       
       // 5단계: 티스토리용 HTML 파일 생성
       console.log('\n📋 5단계: 티스토리 HTML 파일 생성 중...');
@@ -90,7 +90,7 @@ class GitHubActionsBlog {
       console.log('🎉 블로그 자동화 완료!');
       console.log('━'.repeat(60));
       console.log(`📝 키워드: ${newKeyword}`);
-      console.log(`🔗 Blogger URL: ${publishedPost.url || 'Draft 상태'}`);
+      console.log(`🔗 Blogger URL: ${publishedPost.url}`);
       console.log(`📄 티스토리 HTML: ${tistoryHtmlPath}`);
       console.log(`📈 품질 점수: ${qualityReport.qualityScore}/100`);
       console.log(`📏 단어 수: ${qualityReport.wordCount}개`);
