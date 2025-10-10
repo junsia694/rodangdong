@@ -292,8 +292,8 @@ Return only 5 specific topic names in English, one per line.
         return false;
       }
       
-      // 너무 짧거나 긴 키워드 제외
-      if (keyword.length < 10 || keyword.length > 100) {
+      // 너무 짧거나 긴 키워드 제외 (길이 제한 완화: 10~100 → 5~150)
+      if (keyword.length < 5 || keyword.length > 150) {
         return false;
       }
       
@@ -302,37 +302,50 @@ Return only 5 specific topic names in English, one per line.
     
     console.log(`✅ 일반 키워드 제외 후: ${nonGenericKeywords.length}개`);
     
-    // 2. 기술 + 금융 관련 키워드만 필터링
+    // 2. 기술 + 금융 관련 키워드만 필터링 (조건 완화)
     const techFinanceKeywords = nonGenericKeywords.filter(keyword => {
       const keywordLower = keyword.toLowerCase();
       
-      // 기술 관련 키워드 (구체적인 것만)
+      // 기술 관련 키워드 (더 넓은 범위로 확장)
       const isTech = (
-        keywordLower.match(/chatgpt|gpt-4|claude|gemini|openai|anthropic|midjourney|stable diffusion/) ||
-        keywordLower.match(/github|gitlab|docker|kubernetes|react|vue|angular|next\.js|typescript/) ||
-        keywordLower.match(/iphone|galaxy|pixel|macbook|airpods|vision pro|apple watch/) ||
-        keywordLower.match(/nvidia|rtx|geforce|amd|ryzen|intel|core|chip|processor/) ||
-        keywordLower.match(/aws|azure|gcp|vercel|netlify|cloudflare|supabase/) ||
-        keywordLower.match(/python 3\.|javascript|rust|go lang|kotlin|swift/) ||
-        keywordLower.match(/zero-day|ransomware|phishing|vulnerability|cve-|exploit/)
+        // AI/ML 관련
+        keywordLower.match(/\b(ai|artificial intelligence|machine learning|deep learning|neural|chatgpt|gpt|claude|gemini|openai|anthropic|midjourney|stable diffusion|llm|transformer)\b/i) ||
+        // 개발/프로그래밍
+        keywordLower.match(/\b(github|gitlab|docker|kubernetes|react|vue|angular|next\.?js|typescript|javascript|python|rust|go|java|swift|kotlin|programming|code|developer|software|framework|library|api)\b/i) ||
+        // 하드웨어/가젯
+        keywordLower.match(/\b(iphone|galaxy|pixel|macbook|airpods|vision pro|apple watch|samsung|google|apple|microsoft|nvidia|rtx|geforce|amd|ryzen|intel|core|chip|processor|gpu|cpu|hardware|semiconductor)\b/i) ||
+        // 클라우드/인프라
+        keywordLower.match(/\b(aws|azure|gcp|cloud|vercel|netlify|cloudflare|supabase|devops|ci\/cd|serverless)\b/i) ||
+        // 보안
+        keywordLower.match(/\b(zero-day|ransomware|phishing|vulnerability|cve-|exploit|security|cybersecurity|hack|breach|encryption)\b/i) ||
+        // 데이터/분석
+        keywordLower.match(/\b(data|database|analytics|big data|sql|nosql|mongodb|postgresql|redis)\b/i) ||
+        // 웹/모바일
+        keywordLower.match(/\b(web|mobile|ios|android|app|website|frontend|backend|fullstack)\b/i) ||
+        // 기타 IT 트렌드
+        keywordLower.match(/\b(metaverse|vr|ar|xr|blockchain|nft|quantum|5g|6g|iot|edge computing)\b/i)
       );
       
-      // 금융 관련 키워드 (구체적인 것만)
+      // 금융 관련 키워드 (더 넓은 범위로 확장)
       const isFinance = (
-        keywordLower.match(/bitcoin|ethereum|solana|cardano|polygon|avalanche|bnb/) ||
-        keywordLower.match(/binance|coinbase|kraken|bybit|okx|upbit|bithumb/) ||
-        keywordLower.match(/tesla stock|nvidia stock|apple stock|amazon stock|google stock/) ||
-        keywordLower.match(/s&p 500|dow jones|nasdaq|kospi|bitcoin etf|sec approval/) ||
-        keywordLower.match(/paypal|stripe|square|revolut|wise|remitly|klarna/) ||
-        keywordLower.match(/defi|yield farming|liquidity pool|staking|dex|uniswap|aave/)
+        // 암호화폐
+        keywordLower.match(/\b(bitcoin|ethereum|solana|cardano|polygon|avalanche|bnb|crypto|cryptocurrency|altcoin|memecoin|dogecoin|shiba)\b/i) ||
+        // 거래소/서비스
+        keywordLower.match(/\b(binance|coinbase|kraken|bybit|okx|upbit|bithumb|paypal|stripe|square|revolut|wise|remitly|klarna)\b/i) ||
+        // 주식/투자
+        keywordLower.match(/\b(stock|trading|invest|portfolio|dividend|market|nasdaq|dow jones|s&p 500|kospi|etf|fund|asset)\b/i) ||
+        // 금융 기술
+        keywordLower.match(/\b(fintech|payment|banking|digital banking|mobile payment|wallet|defi|yield farming|liquidity|staking|dex|uniswap|aave|lending)\b/i) ||
+        // 경제/재무
+        keywordLower.match(/\b(economy|inflation|interest rate|fed|reserve|recession|bull market|bear market|sec|regulation)\b/i)
       );
       
       return isTech || isFinance;
     });
     
-    console.log(`💻💰 구체적인 기술+금융 키워드 ${techFinanceKeywords.length}개 필터링 완료`);
+    console.log(`💻💰 기술+금융 키워드 ${techFinanceKeywords.length}개 필터링 완료 (조건 완화)`);
     
-    // 3. 이미 사용된 키워드 및 유사 키워드 제외 (엄격한 유사도 검사)
+    // 3. 이미 사용된 키워드 및 유사 키워드 제외 (유사도 검사 완화: 50% → 70%)
     const newKeywords = techFinanceKeywords.filter(keyword => {
       const keywordLower = keyword.toLowerCase();
       
@@ -342,7 +355,7 @@ Return only 5 specific topic names in English, one per line.
         return false;
       }
       
-      // 유사도 검사 (단어 기반)
+      // 유사도 검사 (단어 기반, 조건 완화)
       const keywordWords = keywordLower.split(/\s+/).filter(w => w.length > 3);
       
       for (const used of usedKeywordStrings) {
@@ -355,10 +368,10 @@ Return only 5 specific topic names in English, one per line.
           )
         );
         
-        // 공통 단어가 50% 이상이면 유사 키워드로 판단
+        // 공통 단어가 70% 이상이면 유사 키워드로 판단 (50% → 70%로 완화)
         const similarity = commonWords.length / Math.max(keywordWords.length, usedWords.length);
         
-        if (similarity > 0.5) {
+        if (similarity > 0.7) {
           console.log(`❌ 유사 키워드 제외: "${keyword}" (유사: "${used}", ${Math.round(similarity * 100)}%)`);
           return false;
         }
@@ -367,10 +380,10 @@ Return only 5 specific topic names in English, one per line.
       return true;
     });
 
-    console.log(`✅ ${newKeywords.length}개의 새로운 구체적 키워드 발견`);
+    console.log(`✅ ${newKeywords.length}개의 새로운 키워드 발견`);
     
-    // 상위 10개 반환
-    return newKeywords.slice(0, 10);
+    // 상위 20개 반환 (10개 → 20개로 증가)
+    return newKeywords.slice(0, 20);
   }
 
   /**
