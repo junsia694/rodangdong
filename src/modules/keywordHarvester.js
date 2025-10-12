@@ -416,14 +416,12 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
   async harvestAllKeywords() {
     console.log('🌲 Evergreen 키워드 기반 수집 시작 (IT 2개 + 금융 1개 패턴)...');
 
-    // 1. IT와 Finance 키워드 동시 생성
-    const [itKeywords, financeKeywords] = await Promise.all([
-      this.getEvergreenKeywords('IT'),
-      this.getEvergreenKeywords('Finance')
-    ]);
-
-    console.log(`✅ IT Evergreen 키워드 ${itKeywords.length}개 생성 완료`);
-    console.log(`✅ Finance Evergreen 키워드 ${financeKeywords.length}개 생성 완료`);
+    let allITKeywords = [];
+    let allFinanceKeywords = [];
+    let attempt = 0;
+    const maxAttempts = 3; // 최대 3번 재시도
+    const minRequiredIT = 14; // 필요한 최소 IT 키워드
+    const minRequiredFinance = 7; // 필요한 최소 Finance 키워드
 
     // 2. 블로그 게시글 제목 가져오기
     let existingTitles = [];
@@ -437,69 +435,125 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
       console.log(`📋 파일 DB에서 ${existingTitles.length}개 키워드 로드`);
     }
 
-    // 3. 유사도 필터링 (30점 이하만 허용)
     const similarityThreshold = 30;
-    
-    const newITKeywords = itKeywords.filter(keyword => {
-      for (const existingTitle of existingTitles) {
-        const similarity = this.calculateSimilarity(keyword, existingTitle);
-        if (similarity > similarityThreshold) {
-          console.log(`❌ 유사 키워드 제외 (IT): "${keyword}" ↔ "${existingTitle}" (${similarity}점)`);
+
+    // 충분한 키워드를 얻을 때까지 반복 생성
+    while (attempt < maxAttempts) {
+      attempt++;
+      console.log(`\n🔄 키워드 생성 시도 ${attempt}/${maxAttempts}...`);
+
+      // 1. IT와 Finance 키워드 생성
+      const [itKeywords, financeKeywords] = await Promise.all([
+        this.getEvergreenKeywords('IT'),
+        this.getEvergreenKeywords('Finance')
+      ]);
+
+      console.log(`✅ IT Evergreen 키워드 ${itKeywords.length}개 생성 완료`);
+      console.log(`✅ Finance Evergreen 키워드 ${financeKeywords.length}개 생성 완료`);
+
+      // 3. 유사도 필터링 (30점 이하만 허용)
+      const newITKeywords = itKeywords.filter(keyword => {
+        // 이미 수집된 키워드와 중복 체크
+        if (allITKeywords.includes(keyword)) {
           return false;
         }
-      }
-      return true;
-    });
+        
+        for (const existingTitle of existingTitles) {
+          const similarity = this.calculateSimilarity(keyword, existingTitle);
+          if (similarity > similarityThreshold) {
+            console.log(`❌ 유사 키워드 제외 (IT): "${keyword}" ↔ "${existingTitle}" (${similarity}점)`);
+            return false;
+          }
+        }
+        return true;
+      });
 
-    const newFinanceKeywords = financeKeywords.filter(keyword => {
-      for (const existingTitle of existingTitles) {
-        const similarity = this.calculateSimilarity(keyword, existingTitle);
-        if (similarity > similarityThreshold) {
-          console.log(`❌ 유사 키워드 제외 (Finance): "${keyword}" ↔ "${existingTitle}" (${similarity}점)`);
+      const newFinanceKeywords = financeKeywords.filter(keyword => {
+        // 이미 수집된 키워드와 중복 체크
+        if (allFinanceKeywords.includes(keyword)) {
           return false;
         }
+        
+        for (const existingTitle of existingTitles) {
+          const similarity = this.calculateSimilarity(keyword, existingTitle);
+          if (similarity > similarityThreshold) {
+            console.log(`❌ 유사 키워드 제외 (Finance): "${keyword}" ↔ "${existingTitle}" (${similarity}점)`);
+            return false;
+          }
+        }
+        return true;
+      });
+
+      // 새로운 키워드 추가
+      allITKeywords.push(...newITKeywords);
+      allFinanceKeywords.push(...newFinanceKeywords);
+
+      console.log(`📊 현재까지 수집된 IT 키워드: ${allITKeywords.length}개`);
+      console.log(`📊 현재까지 수집된 Finance 키워드: ${allFinanceKeywords.length}개`);
+
+      // 충분한 키워드를 얻었는지 확인
+      if (allITKeywords.length >= minRequiredIT && allFinanceKeywords.length >= minRequiredFinance) {
+        console.log(`✅ 충분한 키워드 확보! (IT: ${allITKeywords.length}, Finance: ${allFinanceKeywords.length})`);
+        break;
       }
-      return true;
-    });
 
-    console.log(`✅ 사용 가능한 IT 키워드: ${newITKeywords.length}개`);
-    console.log(`✅ 사용 가능한 Finance 키워드: ${newFinanceKeywords.length}개`);
+      if (attempt < maxAttempts) {
+        console.log(`⚠️  키워드 부족. 추가 생성 중... (필요: IT ${minRequiredIT}개, Finance ${minRequiredFinance}개)`);
+      }
+    }
 
-    // 5. IT 2개 + 금융 1개 패턴으로 혼합
+    console.log(`\n✅ 최종 사용 가능한 IT 키워드: ${allITKeywords.length}개`);
+    console.log(`✅ 최종 사용 가능한 Finance 키워드: ${allFinanceKeywords.length}개`);
+
+    // 5. 키워드가 부족한 경우 경고
+    if (allITKeywords.length === 0 && allFinanceKeywords.length === 0) {
+      console.error('❌ 사용 가능한 키워드가 없습니다. 블로그에 모든 주제가 게시되었을 수 있습니다.');
+      return [];
+    }
+
+    // 6. IT 2개 + 금융 1개 패턴으로 혼합
     const mixedKeywords = [];
     let itIndex = 0;
     let financeIndex = 0;
 
-    // IT, IT, Finance 패턴으로 30개 생성
-    for (let i = 0; i < 30; i++) {
+    // IT, IT, Finance 패턴으로 최대 30개 생성
+    for (let i = 0; i < 30 && (itIndex < allITKeywords.length || financeIndex < allFinanceKeywords.length); i++) {
       if (i % 3 === 2) {
-        // 3번째마다 Finance (0, 1, 2 → 2번 인덱스)
-        if (financeIndex < newFinanceKeywords.length) {
-          mixedKeywords.push(newFinanceKeywords[financeIndex]);
+        // 3번째마다 Finance
+        if (financeIndex < allFinanceKeywords.length) {
+          mixedKeywords.push(allFinanceKeywords[financeIndex]);
           financeIndex++;
+        } else if (itIndex < allITKeywords.length) {
+          // Finance 부족 시 IT로 대체
+          mixedKeywords.push(allITKeywords[itIndex]);
+          itIndex++;
         }
       } else {
         // IT 키워드
-        if (itIndex < newITKeywords.length) {
-          mixedKeywords.push(newITKeywords[itIndex]);
+        if (itIndex < allITKeywords.length) {
+          mixedKeywords.push(allITKeywords[itIndex]);
           itIndex++;
+        } else if (financeIndex < allFinanceKeywords.length) {
+          // IT 부족 시 Finance로 대체
+          mixedKeywords.push(allFinanceKeywords[financeIndex]);
+          financeIndex++;
         }
       }
     }
 
-    console.log(`✅ IT:Finance 비율로 혼합: ${mixedKeywords.length}개`);
+    console.log(`\n✅ IT:Finance 비율로 혼합: ${mixedKeywords.length}개`);
     console.log(`📊 IT ${itIndex}개 + Finance ${financeIndex}개 선택됨`);
 
-    // 6. 키워드 정리
+    // 7. 키워드 정리
     const cleanedKeywords = this.cleanKeywords(mixedKeywords);
 
-    // 7. 상위 21개 반환 (IT 14개 + Finance 7개)
-    const topKeywords = cleanedKeywords.slice(0, 21);
+    // 8. 최종 키워드 반환
+    console.log(`✅ 최종 키워드 ${cleanedKeywords.length}개 선택 완료`);
+    if (cleanedKeywords.length > 0) {
+      console.log(`📊 선택된 키워드 (상위 5개):`, cleanedKeywords.slice(0, 5));
+    }
     
-    console.log(`✅ 최종 키워드 ${topKeywords.length}개 선택 완료`);
-    console.log(`📊 선택된 키워드:`, topKeywords);
-    
-    return topKeywords;
+    return cleanedKeywords;
   }
 
   /**
