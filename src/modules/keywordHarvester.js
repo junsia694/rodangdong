@@ -29,60 +29,76 @@ class KeywordHarvester {
   }
 
   /**
-   * Gemini AI를 사용한 의미론적 유사도 계산 (0-100)
-   * @param {string} str1 - 첫 번째 문자열
-   * @param {string} str2 - 두 번째 문자열
-   * @returns {Promise<number>} 의미론적 유사도 점수 (0-100)
+   * Gemini AI를 사용하여 가장 유사도가 낮은 키워드 1개 추천
+   * @param {Array<string>} candidateKeywords - 후보 키워드 배열
+   * @param {Array<string>} existingTitles - 기존 게시글 제목 배열
+   * @returns {Promise<string|null>} 추천된 키워드
    */
-  async calculateSemanticSimilarity(str1, str2) {
+  async selectMostUniqueKeyword(candidateKeywords, existingTitles) {
     try {
+      console.log(`🤖 Gemini AI로 가장 독창적인 키워드 선택 중... (후보 ${candidateKeywords.length}개)`);
+      
       const prompt = `
-You are a semantic similarity expert. Analyze the following two blog post titles/topics and determine their SEMANTIC SIMILARITY.
+You are a content strategist expert. Your task is to select the MOST UNIQUE and LEAST SIMILAR keyword from the candidate list.
 
-Title 1: "${str1}"
-Title 2: "${str2}"
+**Existing Blog Post Titles (${existingTitles.length} posts):**
+${existingTitles.slice(0, 100).map((title, i) => `${i + 1}. ${title}`).join('\n')}
+${existingTitles.length > 100 ? `... and ${existingTitles.length - 100} more` : ''}
 
-Task: Calculate how similar these two topics are in MEANING and CONTENT, not just by word matching.
+**Candidate Keywords (${candidateKeywords.length} candidates):**
+${candidateKeywords.map((kw, i) => `${i + 1}. ${kw}`).join('\n')}
 
-Consider:
-1. Do they discuss the same core concept or technology?
-2. Are they targeting the same audience or use case?
-3. Would a reader interested in one topic find the other redundant?
-4. Do they cover overlapping information?
+**Task:**
+Analyze each candidate keyword and compare it semantically with ALL existing blog post titles.
+Select the ONE keyword that has the LOWEST semantic similarity with existing posts.
 
-Similarity Scale:
-- 0-20: Completely different topics (Different domains or concepts)
-- 21-40: Somewhat related but distinct topics (Same domain, different focus)
-- 41-60: Related topics with some overlap (Similar concepts, different angles)
-- 61-80: Very similar topics (Same concept, slightly different approach)
-- 81-100: Nearly identical topics (Redundant content)
+**Criteria:**
+1. The keyword should discuss a DIFFERENT concept/topic from existing posts
+2. The keyword should target a DIFFERENT use case or audience
+3. Readers who read existing posts would find this topic FRESH and NEW
+4. Avoid topics that overlap significantly with existing content
 
-Examples:
-- "How to Create a Budget" vs "Budget Bliss: Your Monthly Spending Blueprint" → 35 (Related but distinct)
-- "RESTful API Design" vs "RESTful API Best Practices" → 75 (Very similar)
-- "Docker Basics" vs "Kubernetes Deployment" → 25 (Related but distinct)
-- "Python Programming" vs "JavaScript Basics" → 15 (Different languages)
+**Similarity Levels:**
+- High Overlap (60-100): Same concept, redundant → AVOID
+- Medium Overlap (40-60): Related topic, some redundancy → AVOID  
+- Low Overlap (20-40): Related domain, distinct focus → PREFER
+- No Overlap (0-20): Completely different → MOST PREFER
 
-IMPORTANT: 
-- Return ONLY a number between 0-100
-- NO explanations, NO text, JUST the number
-- Be strict: if topics cover similar ground, score should be 60+
+**IMPORTANT:**
+- Return ONLY the exact keyword text from the candidate list
+- Return the SINGLE most unique keyword
+- NO explanations, NO numbers, NO additional text
+- If all candidates are too similar (>40 similarity), return "NONE"
 
-Semantic Similarity Score:`;
+Selected Keyword:`;
 
       const result = await this.model.generateContent(prompt);
       const response = await result.response;
-      const text = response.text().trim();
+      const selectedKeyword = response.text().trim();
       
-      // 숫자 추출
-      const score = parseInt(text.match(/\d+/)?.[0] || '0');
+      // "NONE" 체크
+      if (selectedKeyword === "NONE" || selectedKeyword === "none") {
+        console.log('⚠️  Gemini AI: 모든 후보가 기존 게시글과 유사함');
+        return null;
+      }
       
-      return Math.min(100, Math.max(0, score));
+      // 후보 목록에 있는지 확인
+      const foundKeyword = candidateKeywords.find(k => 
+        k.toLowerCase().trim() === selectedKeyword.toLowerCase().trim()
+      );
+      
+      if (foundKeyword) {
+        console.log(`✅ 선택된 키워드: "${foundKeyword}"`);
+        return foundKeyword;
+      } else {
+        console.warn(`⚠️  Gemini가 반환한 키워드가 후보 목록에 없음: "${selectedKeyword}"`);
+        console.log(`🔄 첫 번째 후보 키워드로 폴백: "${candidateKeywords[0]}"`);
+        return candidateKeywords[0];
+      }
       
     } catch (error) {
-      console.warn('⚠️  의미론적 유사도 계산 실패, 단어 기반 폴백:', error.message);
-      // 폴백: 단어 기반 계산
-      return this.calculateWordBasedSimilarity(str1, str2);
+      console.warn('⚠️  키워드 선택 실패, 첫 번째 후보로 폴백:', error.message);
+      return candidateKeywords.length > 0 ? candidateKeywords[0] : null;
     }
   }
 
@@ -114,6 +130,45 @@ Semantic Similarity Score:`;
     const similarity = (commonWords.length / Math.max(words1.length, words2.length)) * 100;
     
     return Math.round(similarity);
+  }
+
+  /**
+   * 의미론적 유사도 검증 (단일 키워드 - 2차 필터링)
+   * @param {string} keyword - 검증할 키워드
+   * @param {Array<string>} existingTitles - 기존 게시글 제목 배열
+   * @returns {Promise<number>} 최대 유사도 점수 (0-100)
+   */
+  async verifySemanticUniqueness(keyword, existingTitles) {
+    try {
+      const prompt = `
+Analyze semantic similarity between a keyword and existing blog titles.
+
+Keyword: "${keyword}"
+
+Existing Titles (${existingTitles.length}):
+${existingTitles.slice(0, 50).map((t, i) => `${i + 1}. ${t}`).join('\n')}
+${existingTitles.length > 50 ? `... (${existingTitles.length - 50} more)` : ''}
+
+Find the HIGHEST similarity score with any existing title (0-100):
+- 0-20: Completely different
+- 21-40: Related but distinct
+- 41-60: Similar
+- 61-80: Very similar
+- 81-100: Nearly identical
+
+Return ONLY a number (0-100), NO text.`;
+
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text().trim();
+      
+      const score = parseInt(text.match(/\d+/)?.[0] || '0');
+      return Math.min(100, Math.max(0, score));
+      
+    } catch (error) {
+      console.warn('⚠️  의미론적 검증 실패:', error.message);
+      return 0;
+    }
   }
 
   /**
@@ -471,50 +526,83 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
       console.log(`✅ IT Evergreen 키워드 ${itKeywords.length}개 생성 완료`);
       console.log(`✅ Finance Evergreen 키워드 ${financeKeywords.length}개 생성 완료`);
 
-      // 3. 의미론적 유사도 필터링 (30점 이하만 허용)
-      const newITKeywords = [];
-      for (const keyword of itKeywords) {
-        // 이미 수집된 키워드와 중복 체크
+      // 3. 1차 필터링: 단어 기반 유사도 (30점 이하만 허용)
+      console.log('\n📝 1차 필터링: 단어 기반 유사도 검사 (30점 이하)...');
+      const wordThreshold = 30;
+      
+      const itCandidates = itKeywords.filter(keyword => {
         if (allITKeywords.includes(keyword)) {
-          continue;
+          return false;
         }
         
-        let isSimilar = false;
         for (const existingTitle of existingTitles) {
-          const similarity = await this.calculateSemanticSimilarity(keyword, existingTitle);
-          if (similarity > similarityThreshold) {
-            console.log(`❌ 유사 키워드 제외 (IT): "${keyword}" ↔ "${existingTitle}" (의미 유사도: ${similarity}점)`);
-            isSimilar = true;
-            break;
+          const similarity = this.calculateWordBasedSimilarity(keyword, existingTitle);
+          if (similarity > wordThreshold) {
+            return false;
           }
         }
+        return true;
+      });
+
+      const financeCandidates = financeKeywords.filter(keyword => {
+        if (allFinanceKeywords.includes(keyword)) {
+          return false;
+        }
         
-        if (!isSimilar) {
+        for (const existingTitle of existingTitles) {
+          const similarity = this.calculateWordBasedSimilarity(keyword, existingTitle);
+          if (similarity > wordThreshold) {
+            return false;
+          }
+        }
+        return true;
+      });
+
+      console.log(`✅ 1차 필터링 완료: IT ${itCandidates.length}개, Finance ${financeCandidates.length}개`);
+
+      // 4. 2차 필터링: AI 의미론적 유사도 검증 (40점 이하만 허용)
+      console.log('\n🤖 2차 필터링: AI 의미론적 유사도 검증 (40점 이하)...');
+      const semanticThreshold = 40;
+      const newITKeywords = [];
+      const newFinanceKeywords = [];
+      
+      // IT 키워드 검증
+      for (const keyword of itCandidates) {
+        const maxSimilarity = await this.verifySemanticUniqueness(keyword, existingTitles);
+        
+        if (maxSimilarity <= semanticThreshold) {
+          console.log(`✅ IT 키워드 허용: "${keyword}" (최대 유사도: ${maxSimilarity}점)`);
           newITKeywords.push(keyword);
+          
+          // 충분한 키워드를 얻으면 중단
+          if (newITKeywords.length >= minRequiredIT) {
+            console.log(`✅ IT 키워드 충분 (${newITKeywords.length}개), 검증 중단`);
+            break;
+          }
+        } else {
+          console.log(`❌ IT 키워드 제외: "${keyword}" (최대 유사도: ${maxSimilarity}점 > ${semanticThreshold}점)`);
+        }
+      }
+      
+      // Finance 키워드 검증
+      for (const keyword of financeCandidates) {
+        const maxSimilarity = await this.verifySemanticUniqueness(keyword, existingTitles);
+        
+        if (maxSimilarity <= semanticThreshold) {
+          console.log(`✅ Finance 키워드 허용: "${keyword}" (최대 유사도: ${maxSimilarity}점)`);
+          newFinanceKeywords.push(keyword);
+          
+          // 충분한 키워드를 얻으면 중단
+          if (newFinanceKeywords.length >= minRequiredFinance) {
+            console.log(`✅ Finance 키워드 충분 (${newFinanceKeywords.length}개), 검증 중단`);
+            break;
+          }
+        } else {
+          console.log(`❌ Finance 키워드 제외: "${keyword}" (최대 유사도: ${maxSimilarity}점 > ${semanticThreshold}점)`);
         }
       }
 
-      const newFinanceKeywords = [];
-      for (const keyword of financeKeywords) {
-        // 이미 수집된 키워드와 중복 체크
-        if (allFinanceKeywords.includes(keyword)) {
-          continue;
-        }
-        
-        let isSimilar = false;
-        for (const existingTitle of existingTitles) {
-          const similarity = await this.calculateSemanticSimilarity(keyword, existingTitle);
-          if (similarity > similarityThreshold) {
-            console.log(`❌ 유사 키워드 제외 (Finance): "${keyword}" ↔ "${existingTitle}" (의미 유사도: ${similarity}점)`);
-            isSimilar = true;
-            break;
-          }
-        }
-        
-        if (!isSimilar) {
-          newFinanceKeywords.push(keyword);
-        }
-      }
+      console.log(`✅ 2차 필터링 완료: IT ${newITKeywords.length}개, Finance ${newFinanceKeywords.length}개`);
 
       // 새로운 키워드 추가
       allITKeywords.push(...newITKeywords);
