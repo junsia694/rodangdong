@@ -69,14 +69,15 @@ Korean translation (clean content only):
   /**
    * 키워드를 기반으로 아티클 생성
    * @param {string} keyword - 아티클 주제 키워드
+   * @param {string} language - 언어 ('en' 또는 'ko')
    * @returns {Promise<Object>} 생성된 아티클 정보
    */
-  async generateArticle(keyword) {
+  async generateArticle(keyword, language = 'en') {
     try {
-      console.log(`Generating article for keyword: ${keyword}`);
+      console.log(`Generating article for keyword: ${keyword} (${language.toUpperCase()})`);
       
       // 프롬프트 생성
-      const prompt = generateArticlePrompt(keyword);
+      const prompt = generateArticlePrompt(keyword, language);
       
       // Gemini API 호출
       const result = await this.model.generateContent(prompt);

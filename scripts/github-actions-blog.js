@@ -53,16 +53,16 @@ class GitHubActionsBlog {
       console.log(`   - 이미지 수: ${qualityReport.imageCount}개`);
       console.log(`   - 품질 점수: ${qualityReport.qualityScore}/100`);
       
-      // 3단계: 한국어 번역
-      console.log('\n🌐 3단계: 한국어 번역 중...');
-      const koreanContent = await this.contentGenerator.translateToKorean(article.markdownContent);
-      const koreanTitle = await this.contentGenerator.translateToKorean(article.title);
+      // 3단계: 한국어 콘텐츠 생성 (번역 대신 새로 생성)
+      console.log('\n🌐 3단계: 한국어 콘텐츠 생성 중...');
+      const koreanArticle = await this.contentGenerator.generateArticle(newKeyword, 'ko');
       
-      article.koreanContent = koreanContent;
-      article.koreanTitle = koreanTitle;
+      article.koreanContent = koreanArticle.markdownContent;
+      article.koreanTitle = koreanArticle.title;
+      article.koreanHtmlContent = koreanArticle.content; // HTML 콘텐츠 저장
       
-      console.log(`✅ 번역 완료`);
-      console.log(`   - 한글 제목: ${koreanTitle}`);
+      console.log(`✅ 한국어 콘텐츠 생성 완료`);
+      console.log(`   - 한글 제목: ${koreanArticle.title}`);
       
       // 4단계: Blogger에 즉시 게시
       console.log('\n📤 4단계: Blogger 즉시 게시 중...');
@@ -158,9 +158,9 @@ class GitHubActionsBlog {
       const filename = `${timestamp}_${sanitizedKeyword}.html`;
       const filePath = path.join(outputDir, filename);
       
-      // 티스토리 HTML 생성
+      // 티스토리 HTML 생성 (한국어 HTML 콘텐츠 사용)
       const tistoryHtml = this.generateTistoryHtml(
-        article.koreanContent || article.markdownContent,
+        article.koreanHtmlContent || article.content,  // HTML 콘텐츠 사용
         article.koreanTitle || article.title,
         article
       );
@@ -177,47 +177,25 @@ class GitHubActionsBlog {
   }
 
   /**
-   * 티스토리 HTML 생성
+   * 티스토리 HTML 생성 (이미지 URL을 직접 사용)
    */
-  generateTistoryHtml(content, title, article) {
-    let htmlContent = content;
+  generateTistoryHtml(htmlContent, title, article) {
+    // HTML 콘텐츠를 받았으므로 그대로 사용
+    // 티스토리 최적화만 적용
     
-    // 1. 제목 처리
-    htmlContent = htmlContent.replace(/^# (.+)$/gm, '');
-    
-    // 2. 섹션 제목 처리
-    htmlContent = htmlContent.replace(/^## (.+)$/gm, '<h2 style="font-size: 1.8em; color: #333; margin-top: 35px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 3px solid #FF6B35;">$1</h2>');
-    htmlContent = htmlContent.replace(/^### (.+)$/gm, '<h3 style="font-size: 1.4em; color: #444; margin-top: 25px; margin-bottom: 10px;">$1</h3>');
-    
-    // 3. 강조 처리
-    htmlContent = htmlContent.replace(/\*\*(.+?)\*\*/g, '<strong style="color: #FF6B35; font-weight: 600;">$1</strong>');
-    htmlContent = htmlContent.replace(/\*(.+?)\*/g, '<em style="color: #555;">$1</em>');
-    
-    // 4. 링크 처리
-    htmlContent = htmlContent.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" style="color: #0066CC; text-decoration: none; border-bottom: 1px solid #0066CC;">$1</a>');
-    
-    // 5. 이미지 처리
-    htmlContent = htmlContent.replace(/!\[(.+?)\]\((.+?)\)/g, (match, alt, url) => {
-      return `<div style="text-align: center; margin: 30px 0;"><img src="${url}" alt="${alt}" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" /></div>`;
-    });
-    
-    // 6. 리스트 처리
-    htmlContent = htmlContent.replace(/^\* (.+)$/gm, '<li style="margin-bottom: 10px; line-height: 1.8;">$1</li>');
-    htmlContent = htmlContent.replace(/^- (.+)$/gm, '<li style="margin-bottom: 10px; line-height: 1.8;">$1</li>');
-    
-    // 7. 연속된 li를 ul로 감싸기
-    htmlContent = htmlContent.replace(/(<li[^>]*>.*?<\/li>\n?)+/gs, (match) => {
-      return `<ul style="margin: 15px 0 15px 25px; padding-left: 20px;">${match}</ul>`;
-    });
-    
-    // 8. 문단 처리
-    htmlContent = htmlContent.split('\n\n').map(para => {
-      para = para.trim();
-      if (para && !para.startsWith('<') && para.length > 0) {
-        return `<p style="margin-bottom: 18px; line-height: 1.9; font-size: 16px; color: #333;">${para.replace(/\n/g, '<br>')}</p>`;
+    // 1. 이미지 태그 최적화 (이미 HTML이지만 인라인 스타일 추가)
+    htmlContent = htmlContent.replace(/<img([^>]+)>/g, (match, attrs) => {
+      // src 추출
+      const srcMatch = attrs.match(/src="([^"]+)"/);
+      const altMatch = attrs.match(/alt="([^"]*)"/);
+      
+      if (srcMatch) {
+        const src = srcMatch[1];
+        const alt = altMatch ? altMatch[1] : '';
+        return `<div style="text-align: center; margin: 30px 0;"><img src="${src}" alt="${alt}" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: block; margin: 0 auto;" crossorigin="anonymous" /></div>`;
       }
-      return para;
-    }).join('\n');
+      return match;
+    });
     
     // 9. 티스토리 최적화 HTML
     const tistoryHtml = `<div style="font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; line-height: 1.8;">

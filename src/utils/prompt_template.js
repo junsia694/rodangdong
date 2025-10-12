@@ -4,9 +4,20 @@
  * 출력은 E-E-A-T 원칙, SEO 구조, 그리고 최소 2개의 이미지 배치 제안을 엄격히 준수
  */
 
-export const generateArticlePrompt = (keyword) => `
+export const generateArticlePrompt = (keyword, language = 'en') => `
 You are an expert analyst and professional SEO writer specializing in technology and finance topics.
-Your task is to write a comprehensive, accurate, and highly engaging English article about **${keyword}**.
+Your task is to write a comprehensive, accurate, and highly engaging ${language === 'ko' ? 'KOREAN' : 'English'} article about **${keyword}**.
+
+${language === 'ko' ? `
+**IMPORTANT - KOREAN LANGUAGE REQUIREMENTS:**
+- Write ENTIRELY in Korean (한국어)
+- Use natural, professional Korean suitable for a blog audience
+- Translate technical terms appropriately, including English in parentheses when necessary
+- Example: "머신러닝(Machine Learning)", "클라우드 컴퓨팅(Cloud Computing)"
+- DO NOT mix Korean and English sentences
+- Section titles must be in Korean
+- All content, including examples and explanations, must be in Korean
+` : ''}
 
 **Adapt your expertise based on the topic:**
 - Technology/IT: Technical analyst and expert
