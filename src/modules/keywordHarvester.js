@@ -20,7 +20,112 @@ class KeywordHarvester {
   }
 
   /**
-   * AI를 사용하여 트렌드 키워드 생성
+   * Gemini AI를 사용하여 IT Evergreen 키워드 생성
+   * @returns {Promise<Array<string>>} Evergreen 키워드 배열
+   */
+  async getEvergreenKeywords() {
+    try {
+      console.log('🌲 Gemini AI로 IT Evergreen 키워드 생성 중...');
+      
+      const prompt = `
+Generate 30 EVERGREEN IT and Technology topics that are always relevant and searchable.
+
+Evergreen topics are timeless, consistently searched, and provide long-term value.
+
+Focus Areas:
+1. **Programming Fundamentals**
+   - Data structures, algorithms, design patterns
+   - Programming paradigms, best practices
+   
+2. **Software Development**
+   - Software architecture, microservices, REST API
+   - CI/CD, testing strategies, code quality
+   
+3. **Web Development**
+   - HTML/CSS fundamentals, JavaScript core concepts
+   - Frontend frameworks, backend development
+   - Web performance, accessibility, SEO
+   
+4. **Database & Data**
+   - SQL fundamentals, database design
+   - NoSQL databases, data modeling
+   - Data structures, Big Data concepts
+   
+5. **DevOps & Cloud**
+   - Docker basics, Kubernetes introduction
+   - Cloud computing concepts, AWS/Azure/GCP fundamentals
+   - Linux basics, server management
+   
+6. **Cybersecurity**
+   - Network security basics, encryption
+   - Authentication & authorization
+   - Common vulnerabilities (OWASP Top 10)
+   
+7. **AI & Machine Learning**
+   - Machine learning basics, neural networks
+   - Natural language processing fundamentals
+   - Computer vision basics
+   
+8. **Mobile Development**
+   - iOS development basics, Android fundamentals
+   - Cross-platform development, React Native
+   
+9. **Computer Science Fundamentals**
+   - Operating systems, networking basics
+   - Compilers, interpreters
+   - Memory management, concurrency
+   
+10. **Career & Best Practices**
+    - Clean code principles, SOLID principles
+    - Agile methodology, Scrum basics
+    - Git workflow, version control
+
+Requirements:
+1. Topics must be TIMELESS and EVERGREEN (not trends)
+2. Each topic should be SPECIFIC and SEARCHABLE
+3. 5-20 words per topic
+4. Focus on "How to", "What is", "Understanding", "Basics of" type topics
+5. NO version-specific topics (e.g., "Python 3.14")
+6. NO trending/news topics (e.g., "Latest AI")
+
+Examples of GOOD Evergreen Topics:
+✅ "Understanding RESTful API Design Principles and Best Practices"
+✅ "How to Implement Binary Search Tree in Programming"
+✅ "SQL JOIN Types Explained: Inner, Outer, Left, Right"
+✅ "Docker Container Basics: Images, Volumes, and Networking"
+✅ "Object-Oriented Programming Principles: Inheritance and Polymorphism"
+✅ "Understanding Big O Notation for Algorithm Complexity"
+✅ "How to Secure Web Applications Against XSS Attacks"
+
+Examples of BAD Topics (too trendy):
+❌ "ChatGPT-5 Release Date"
+❌ "Latest iPhone Features"
+❌ "Python 3.14 Performance"
+
+Return ONLY 30 topics, one per line, NO numbers, NO explanations.
+`;
+
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      const keywords = text
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 10 && line.length < 200)
+        .slice(0, 30);
+      
+      console.log(`✅ Evergreen 키워드 ${keywords.length}개 생성 완료`);
+      return keywords;
+
+    } catch (error) {
+      console.error('Evergreen 키워드 생성 실패:', error);
+      return [];
+    }
+  }
+
+  /**
+   * AI를 사용하여 트렌드 키워드 생성 (레거시)
    * @returns {Promise<Array<string>>} 트렌드 키워드 배열
    */
   async getGoogleTrendsKeywords() {
@@ -134,55 +239,48 @@ class KeywordHarvester {
   }
 
   /**
-   * 모든 소스에서 키워드 수집 및 통합 (실시간 검색어 TOP 10 우선)
+   * Evergreen 키워드 수집 및 통합 (이미 사용된 키워드 제외)
    * @returns {Promise<Array<string>>} 통합된 키워드 배열
    */
   async harvestAllKeywords() {
-    console.log('🔥 실시간 검색어 TOP 10 기반 키워드 수집 시작...');
+    console.log('🌲 Evergreen IT 키워드 기반 수집 시작...');
 
-    // 1. 실시간 검색어 수집 (최우선)
-    const realTimeTrends = await this.trendCollector.collectRealTimeTrends();
-    console.log(`✅ 실시간 트렌드 ${realTimeTrends.length}개 수집 완료`);
+    // 1. Gemini AI로 Evergreen 키워드 생성
+    const evergreenKeywords = await this.getEvergreenKeywords();
+    console.log(`✅ Evergreen 키워드 ${evergreenKeywords.length}개 생성 완료`);
 
     // 2. 이미 사용된 키워드 가져오기
     const usedKeywords = await this.db.loadUsedKeywords();
     console.log(`📋 이미 사용된 키워드: ${usedKeywords.length}개`);
 
-    // 3. 필터링: 사용되지 않은 키워드만 선택
-    const filteredKeywords = await this.trendCollector.filterAndPrioritizeKeywords(
-      realTimeTrends, 
-      usedKeywords
-    );
-
-    // 4. 부족할 경우 기존 소스에서 추가 수집
-    if (filteredKeywords.length < 5) {
-      console.log('⚠️  실시간 키워드가 부족합니다. 추가 소스에서 수집 중...');
-      
-      const [redditKeywords, hnKeywords] = await Promise.allSettled([
-        this.getRedditKeywords(),
-        this.getHackerNewsKeywords()
-      ]);
-
-      if (redditKeywords.status === 'fulfilled') {
-        filteredKeywords.push(...redditKeywords.value.slice(0, 5));
+    // 3. 사용된 키워드를 문자열 배열로 변환
+    const usedKeywordStrings = usedKeywords.map(used => {
+      if (typeof used === 'string') {
+        return used.toLowerCase();
+      } else if (used && used.keyword) {
+        return used.keyword.toLowerCase();
       }
+      return '';
+    }).filter(k => k.length > 0);
 
-      if (hnKeywords.status === 'fulfilled') {
-        filteredKeywords.push(...hnKeywords.value.slice(0, 5));
-      }
-    }
+    // 4. 이미 사용된 키워드 제외 (완전 일치만)
+    const newKeywords = evergreenKeywords.filter(keyword => {
+      const keywordLower = keyword.toLowerCase();
+      return !usedKeywordStrings.includes(keywordLower);
+    });
 
-    // 5. 키워드 정리 및 우선순위 지정
-    const cleanedKeywords = this.cleanKeywords(filteredKeywords);
-    const prioritizedKeywords = this.prioritizeCommercialKeywords(cleanedKeywords);
+    console.log(`✅ 사용 가능한 새로운 Evergreen 키워드: ${newKeywords.length}개`);
 
-    // 6. 상위 10개만 반환
-    const top10Keywords = prioritizedKeywords.slice(0, 10);
+    // 5. 키워드 정리
+    const cleanedKeywords = this.cleanKeywords(newKeywords);
+
+    // 6. 상위 20개 반환 (더 많은 선택지 제공)
+    const topKeywords = cleanedKeywords.slice(0, 20);
     
-    console.log(`✅ 최종 키워드 ${top10Keywords.length}개 선택 완료`);
-    console.log(`📊 선택된 키워드:`, top10Keywords);
+    console.log(`✅ 최종 키워드 ${topKeywords.length}개 선택 완료`);
+    console.log(`📊 선택된 키워드:`, topKeywords);
     
-    return top10Keywords;
+    return topKeywords;
   }
 
   /**
