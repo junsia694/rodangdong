@@ -21,13 +21,39 @@ class KeywordHarvester {
 
   /**
    * Gemini AI를 사용하여 IT Evergreen 키워드 생성
+   * @param {string} category - 'IT' 또는 'Finance'
    * @returns {Promise<Array<string>>} Evergreen 키워드 배열
    */
-  async getEvergreenKeywords() {
+  async getEvergreenKeywords(category = 'IT') {
     try {
-      console.log('🌲 Gemini AI로 IT Evergreen 키워드 생성 중...');
+      console.log(`🌲 Gemini AI로 ${category} Evergreen 키워드 생성 중...`);
       
-      const prompt = `
+      const prompt = category === 'Finance' ? this.getFinanceEvergreenPrompt() : this.getITEvergreenPrompt();
+
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      const keywords = text
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 10 && line.length < 200)
+        .slice(0, 30);
+      
+      console.log(`✅ ${category} Evergreen 키워드 ${keywords.length}개 생성 완료`);
+      return keywords;
+
+    } catch (error) {
+      console.error(`${category} Evergreen 키워드 생성 실패:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * IT Evergreen 키워드 프롬프트
+   */
+  getITEvergreenPrompt() {
+    return `
 Generate 30 EVERGREEN IT and Technology topics that are always relevant and searchable.
 
 Evergreen topics are timeless, consistently searched, and provide long-term value.
@@ -104,24 +130,92 @@ Examples of BAD Topics (too trendy):
 
 Return ONLY 30 topics, one per line, NO numbers, NO explanations.
 `;
+  }
 
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
-      
-      const keywords = text
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line.length > 10 && line.length < 200)
-        .slice(0, 30);
-      
-      console.log(`✅ Evergreen 키워드 ${keywords.length}개 생성 완료`);
-      return keywords;
+  /**
+   * Finance Evergreen 키워드 프롬프트
+   */
+  getFinanceEvergreenPrompt() {
+    return `
+Generate 30 EVERGREEN Finance and Investment topics that are always relevant and searchable.
 
-    } catch (error) {
-      console.error('Evergreen 키워드 생성 실패:', error);
-      return [];
-    }
+Evergreen topics are timeless, consistently searched, and provide long-term value.
+
+Focus Areas:
+1. **Personal Finance Basics**
+   - Budgeting, saving, emergency funds
+   - Debt management, credit scores
+   - Financial planning fundamentals
+   
+2. **Investment Fundamentals**
+   - Stock market basics, bonds, ETFs
+   - Diversification, asset allocation
+   - Risk management, portfolio building
+   
+3. **Retirement Planning**
+   - 401(k), IRA, pension plans
+   - Retirement savings strategies
+   - Social security basics
+   
+4. **Real Estate & Property**
+   - Home buying process, mortgages
+   - Real estate investment basics
+   - Rental property management
+   
+5. **Tax & Accounting**
+   - Tax deductions, tax planning
+   - Tax-advantaged accounts
+   - Basic accounting principles
+   
+6. **Banking & Credit**
+   - Checking vs savings accounts
+   - Credit cards, loans
+   - Interest rates, APR explained
+   
+7. **Insurance**
+   - Life insurance types, health insurance
+   - Auto insurance, home insurance
+   - Insurance coverage basics
+   
+8. **Business & Entrepreneurship**
+   - Starting a business, business plans
+   - Cash flow management
+   - Small business accounting
+   
+9. **Cryptocurrency Basics**
+   - Blockchain fundamentals
+   - Cryptocurrency wallets
+   - Bitcoin vs Ethereum basics
+   
+10. **Financial Literacy**
+    - Compound interest, inflation
+    - Net worth calculation
+    - Financial ratios, financial statements
+
+Requirements:
+1. Topics must be TIMELESS and EVERGREEN (not trends)
+2. Each topic should be SPECIFIC and SEARCHABLE
+3. 5-20 words per topic
+4. Focus on "How to", "What is", "Understanding", "Basics of" type topics
+5. NO market predictions or news
+6. NO specific stock prices or crypto prices
+
+Examples of GOOD Evergreen Topics:
+✅ "Understanding Compound Interest: How Your Money Grows Over Time"
+✅ "How to Build a Diversified Investment Portfolio for Beginners"
+✅ "Roth IRA vs Traditional IRA: Which Retirement Account is Right for You"
+✅ "Understanding Credit Scores: How They Work and How to Improve Them"
+✅ "Real Estate Investment Basics: REITs vs Direct Property Ownership"
+✅ "How to Create a Monthly Budget That Actually Works"
+✅ "Understanding Stock Market Fundamentals: P/E Ratio, Dividends, Market Cap"
+
+Examples of BAD Topics (too trendy):
+❌ "Bitcoin Price Prediction 2025"
+❌ "Latest Fed Interest Rate Decision"
+❌ "Tesla Stock Analysis"
+
+Return ONLY 30 topics, one per line, NO numbers, NO explanations.
+`;
   }
 
   /**
@@ -239,15 +333,20 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
   }
 
   /**
-   * Evergreen 키워드 수집 및 통합 (이미 사용된 키워드 제외)
+   * Evergreen 키워드 수집 및 통합 (IT 2개 + 금융 1개 패턴)
    * @returns {Promise<Array<string>>} 통합된 키워드 배열
    */
   async harvestAllKeywords() {
-    console.log('🌲 Evergreen IT 키워드 기반 수집 시작...');
+    console.log('🌲 Evergreen 키워드 기반 수집 시작 (IT 2개 + 금융 1개 패턴)...');
 
-    // 1. Gemini AI로 Evergreen 키워드 생성
-    const evergreenKeywords = await this.getEvergreenKeywords();
-    console.log(`✅ Evergreen 키워드 ${evergreenKeywords.length}개 생성 완료`);
+    // 1. IT와 Finance 키워드 동시 생성
+    const [itKeywords, financeKeywords] = await Promise.all([
+      this.getEvergreenKeywords('IT'),
+      this.getEvergreenKeywords('Finance')
+    ]);
+
+    console.log(`✅ IT Evergreen 키워드 ${itKeywords.length}개 생성 완료`);
+    console.log(`✅ Finance Evergreen 키워드 ${financeKeywords.length}개 생성 완료`);
 
     // 2. 이미 사용된 키워드 가져오기
     const usedKeywords = await this.db.loadUsedKeywords();
@@ -264,18 +363,49 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
     }).filter(k => k.length > 0);
 
     // 4. 이미 사용된 키워드 제외 (완전 일치만)
-    const newKeywords = evergreenKeywords.filter(keyword => {
+    const newITKeywords = itKeywords.filter(keyword => {
       const keywordLower = keyword.toLowerCase();
       return !usedKeywordStrings.includes(keywordLower);
     });
 
-    console.log(`✅ 사용 가능한 새로운 Evergreen 키워드: ${newKeywords.length}개`);
+    const newFinanceKeywords = financeKeywords.filter(keyword => {
+      const keywordLower = keyword.toLowerCase();
+      return !usedKeywordStrings.includes(keywordLower);
+    });
 
-    // 5. 키워드 정리
-    const cleanedKeywords = this.cleanKeywords(newKeywords);
+    console.log(`✅ 사용 가능한 IT 키워드: ${newITKeywords.length}개`);
+    console.log(`✅ 사용 가능한 Finance 키워드: ${newFinanceKeywords.length}개`);
 
-    // 6. 상위 20개 반환 (더 많은 선택지 제공)
-    const topKeywords = cleanedKeywords.slice(0, 20);
+    // 5. IT 2개 + 금융 1개 패턴으로 혼합
+    const mixedKeywords = [];
+    let itIndex = 0;
+    let financeIndex = 0;
+
+    // IT, IT, Finance 패턴으로 30개 생성
+    for (let i = 0; i < 30; i++) {
+      if (i % 3 === 2) {
+        // 3번째마다 Finance (0, 1, 2 → 2번 인덱스)
+        if (financeIndex < newFinanceKeywords.length) {
+          mixedKeywords.push(newFinanceKeywords[financeIndex]);
+          financeIndex++;
+        }
+      } else {
+        // IT 키워드
+        if (itIndex < newITKeywords.length) {
+          mixedKeywords.push(newITKeywords[itIndex]);
+          itIndex++;
+        }
+      }
+    }
+
+    console.log(`✅ IT:Finance 비율로 혼합: ${mixedKeywords.length}개`);
+    console.log(`📊 IT ${itIndex}개 + Finance ${financeIndex}개 선택됨`);
+
+    // 6. 키워드 정리
+    const cleanedKeywords = this.cleanKeywords(mixedKeywords);
+
+    // 7. 상위 21개 반환 (IT 14개 + Finance 7개)
+    const topKeywords = cleanedKeywords.slice(0, 21);
     
     console.log(`✅ 최종 키워드 ${topKeywords.length}개 선택 완료`);
     console.log(`📊 선택된 키워드:`, topKeywords);
