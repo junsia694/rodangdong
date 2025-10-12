@@ -29,21 +29,77 @@ class KeywordHarvester {
   }
 
   /**
-   * 두 문자열 간의 유사도 계산 (0-100)
+   * Gemini AI를 사용한 의미론적 유사도 계산 (0-100)
+   * @param {string} str1 - 첫 번째 문자열
+   * @param {string} str2 - 두 번째 문자열
+   * @returns {Promise<number>} 의미론적 유사도 점수 (0-100)
+   */
+  async calculateSemanticSimilarity(str1, str2) {
+    try {
+      const prompt = `
+You are a semantic similarity expert. Analyze the following two blog post titles/topics and determine their SEMANTIC SIMILARITY.
+
+Title 1: "${str1}"
+Title 2: "${str2}"
+
+Task: Calculate how similar these two topics are in MEANING and CONTENT, not just by word matching.
+
+Consider:
+1. Do they discuss the same core concept or technology?
+2. Are they targeting the same audience or use case?
+3. Would a reader interested in one topic find the other redundant?
+4. Do they cover overlapping information?
+
+Similarity Scale:
+- 0-20: Completely different topics (Different domains or concepts)
+- 21-40: Somewhat related but distinct topics (Same domain, different focus)
+- 41-60: Related topics with some overlap (Similar concepts, different angles)
+- 61-80: Very similar topics (Same concept, slightly different approach)
+- 81-100: Nearly identical topics (Redundant content)
+
+Examples:
+- "How to Create a Budget" vs "Budget Bliss: Your Monthly Spending Blueprint" → 35 (Related but distinct)
+- "RESTful API Design" vs "RESTful API Best Practices" → 75 (Very similar)
+- "Docker Basics" vs "Kubernetes Deployment" → 25 (Related but distinct)
+- "Python Programming" vs "JavaScript Basics" → 15 (Different languages)
+
+IMPORTANT: 
+- Return ONLY a number between 0-100
+- NO explanations, NO text, JUST the number
+- Be strict: if topics cover similar ground, score should be 60+
+
+Semantic Similarity Score:`;
+
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text().trim();
+      
+      // 숫자 추출
+      const score = parseInt(text.match(/\d+/)?.[0] || '0');
+      
+      return Math.min(100, Math.max(0, score));
+      
+    } catch (error) {
+      console.warn('⚠️  의미론적 유사도 계산 실패, 단어 기반 폴백:', error.message);
+      // 폴백: 단어 기반 계산
+      return this.calculateWordBasedSimilarity(str1, str2);
+    }
+  }
+
+  /**
+   * 단어 기반 유사도 계산 (폴백용)
    * @param {string} str1 - 첫 번째 문자열
    * @param {string} str2 - 두 번째 문자열
    * @returns {number} 유사도 점수 (0-100)
    */
-  calculateSimilarity(str1, str2) {
+  calculateWordBasedSimilarity(str1, str2) {
     const s1 = str1.toLowerCase().trim();
     const s2 = str2.toLowerCase().trim();
     
-    // 완전 일치
     if (s1 === s2) {
       return 100;
     }
     
-    // 단어 단위로 분리
     const words1 = s1.split(/\s+/).filter(w => w.length > 2);
     const words2 = s2.split(/\s+/).filter(w => w.length > 2);
     
@@ -51,49 +107,13 @@ class KeywordHarvester {
       return 0;
     }
     
-    // 공통 단어 개수
     const commonWords = words1.filter(w1 => 
-      words2.some(w2 => w1.includes(w2) || w2.includes(w1) || this.levenshteinDistance(w1, w2) <= 2)
+      words2.some(w2 => w1.includes(w2) || w2.includes(w1))
     );
     
-    // 유사도 계산: (공통 단어 수 / 전체 단어 수) * 100
     const similarity = (commonWords.length / Math.max(words1.length, words2.length)) * 100;
     
     return Math.round(similarity);
-  }
-
-  /**
-   * Levenshtein Distance 계산 (편집 거리)
-   * @param {string} str1 - 첫 번째 문자열
-   * @param {string} str2 - 두 번째 문자열
-   * @returns {number} 편집 거리
-   */
-  levenshteinDistance(str1, str2) {
-    const matrix = [];
-    
-    for (let i = 0; i <= str2.length; i++) {
-      matrix[i] = [i];
-    }
-    
-    for (let j = 0; j <= str1.length; j++) {
-      matrix[0][j] = j;
-    }
-    
-    for (let i = 1; i <= str2.length; i++) {
-      for (let j = 1; j <= str1.length; j++) {
-        if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
-          matrix[i][j] = matrix[i - 1][j - 1];
-        } else {
-          matrix[i][j] = Math.min(
-            matrix[i - 1][j - 1] + 1,
-            matrix[i][j - 1] + 1,
-            matrix[i - 1][j] + 1
-          );
-        }
-      }
-    }
-    
-    return matrix[str2.length][str1.length];
   }
 
   /**
@@ -435,7 +455,7 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
       console.log(`📋 파일 DB에서 ${existingTitles.length}개 키워드 로드`);
     }
 
-    const similarityThreshold = 30;
+    const similarityThreshold = 40; // 의미론적 유사도 임계값 (40점 초과 시 제외)
 
     // 충분한 키워드를 얻을 때까지 반복 생성
     while (attempt < maxAttempts) {
@@ -451,38 +471,50 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
       console.log(`✅ IT Evergreen 키워드 ${itKeywords.length}개 생성 완료`);
       console.log(`✅ Finance Evergreen 키워드 ${financeKeywords.length}개 생성 완료`);
 
-      // 3. 유사도 필터링 (30점 이하만 허용)
-      const newITKeywords = itKeywords.filter(keyword => {
+      // 3. 의미론적 유사도 필터링 (30점 이하만 허용)
+      const newITKeywords = [];
+      for (const keyword of itKeywords) {
         // 이미 수집된 키워드와 중복 체크
         if (allITKeywords.includes(keyword)) {
-          return false;
+          continue;
         }
         
+        let isSimilar = false;
         for (const existingTitle of existingTitles) {
-          const similarity = this.calculateSimilarity(keyword, existingTitle);
+          const similarity = await this.calculateSemanticSimilarity(keyword, existingTitle);
           if (similarity > similarityThreshold) {
-            console.log(`❌ 유사 키워드 제외 (IT): "${keyword}" ↔ "${existingTitle}" (${similarity}점)`);
-            return false;
+            console.log(`❌ 유사 키워드 제외 (IT): "${keyword}" ↔ "${existingTitle}" (의미 유사도: ${similarity}점)`);
+            isSimilar = true;
+            break;
           }
         }
-        return true;
-      });
+        
+        if (!isSimilar) {
+          newITKeywords.push(keyword);
+        }
+      }
 
-      const newFinanceKeywords = financeKeywords.filter(keyword => {
+      const newFinanceKeywords = [];
+      for (const keyword of financeKeywords) {
         // 이미 수집된 키워드와 중복 체크
         if (allFinanceKeywords.includes(keyword)) {
-          return false;
+          continue;
         }
         
+        let isSimilar = false;
         for (const existingTitle of existingTitles) {
-          const similarity = this.calculateSimilarity(keyword, existingTitle);
+          const similarity = await this.calculateSemanticSimilarity(keyword, existingTitle);
           if (similarity > similarityThreshold) {
-            console.log(`❌ 유사 키워드 제외 (Finance): "${keyword}" ↔ "${existingTitle}" (${similarity}점)`);
-            return false;
+            console.log(`❌ 유사 키워드 제외 (Finance): "${keyword}" ↔ "${existingTitle}" (의미 유사도: ${similarity}점)`);
+            isSimilar = true;
+            break;
           }
         }
-        return true;
-      });
+        
+        if (!isSimilar) {
+          newFinanceKeywords.push(keyword);
+        }
+      }
 
       // 새로운 키워드 추가
       allITKeywords.push(...newITKeywords);
