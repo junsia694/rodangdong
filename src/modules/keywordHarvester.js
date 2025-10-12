@@ -592,46 +592,64 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
 
       console.log(`✅ 1차 필터링 완료: IT ${itCandidates.length}개, Finance ${financeCandidates.length}개`);
 
-      // 4. 1차 후보 중 가장 유사도 낮은 키워드 1개씩 선택
-      let selectedIT = null;
-      let selectedFinance = null;
+      // 4. IT와 Finance 후보를 IT 2개 + Finance 1개 패턴으로 혼합
+      console.log('\n🔀 IT:Finance 2:1 비율로 혼합 중...');
+      const mixedCandidates = [];
+      let itIdx = 0;
+      let finIdx = 0;
       
-      if (itCandidates.length > 0) {
-        selectedIT = this.selectLowestSimilarityKeyword(itCandidates, existingTitles);
-        console.log(`🎯 IT 후보 중 최저 유사도 키워드: "${selectedIT}"`);
+      // IT, IT, Finance 패턴으로 혼합 (최대 21개)
+      for (let i = 0; i < 21; i++) {
+        if (i % 3 === 2) {
+          // Finance
+          if (finIdx < financeCandidates.length) {
+            mixedCandidates.push(financeCandidates[finIdx]);
+            finIdx++;
+          } else if (itIdx < itCandidates.length) {
+            mixedCandidates.push(itCandidates[itIdx]);
+            itIdx++;
+          }
+        } else {
+          // IT
+          if (itIdx < itCandidates.length) {
+            mixedCandidates.push(itCandidates[itIdx]);
+            itIdx++;
+          } else if (finIdx < financeCandidates.length) {
+            mixedCandidates.push(financeCandidates[finIdx]);
+            finIdx++;
+          }
+        }
       }
       
-      if (financeCandidates.length > 0) {
-        selectedFinance = this.selectLowestSimilarityKeyword(financeCandidates, existingTitles);
-        console.log(`🎯 Finance 후보 중 최저 유사도 키워드: "${selectedFinance}"`);
+      console.log(`✅ 혼합 완료: ${mixedCandidates.length}개 (IT ${itIdx}개 + Finance ${finIdx}개)`);
+      
+      if (mixedCandidates.length === 0) {
+        console.log('⚠️  혼합 후보가 없습니다. 다음 시도로...');
+        continue;
       }
 
-      // 5. 2차 필터링: AI 의미론적 유사도 검증 (40점 이하만 허용)
-      console.log('\n🤖 2차 필터링: AI 의미론적 유사도 검증 (40점 이하)...');
+      // 5. 혼합된 후보 중 단어 유사도가 가장 낮은 1개 선택
+      console.log('\n🎯 후보 중 최저 단어 유사도 키워드 선택 중...');
+      const selectedKeyword = this.selectLowestSimilarityKeyword(mixedCandidates, existingTitles);
+      console.log(`✅ 선택된 키워드: "${selectedKeyword}"`);
+
+      // 6. AI 의미론적 유사도 최종 검증 (1회만!)
+      console.log('\n🤖 AI 의미론적 유사도 최종 검증 (40점 이하)...');
       const semanticThreshold = 40;
+      const maxSimilarity = await this.verifySemanticUniqueness(selectedKeyword, existingTitles);
       
-      // IT 키워드 AI 검증
-      if (selectedIT && allITKeywords.length < minRequiredIT) {
-        const maxSimilarity = await this.verifySemanticUniqueness(selectedIT, existingTitles);
+      if (maxSimilarity <= semanticThreshold) {
+        console.log(`✅ 키워드 최종 허용: "${selectedKeyword}" (의미 유사도: ${maxSimilarity}점)`);
         
-        if (maxSimilarity <= semanticThreshold) {
-          console.log(`✅ IT 키워드 허용: "${selectedIT}" (의미 유사도: ${maxSimilarity}점)`);
-          allITKeywords.push(selectedIT);
+        // IT인지 Finance인지 판단
+        const isFinance = financeCandidates.includes(selectedKeyword);
+        if (isFinance) {
+          allFinanceKeywords.push(selectedKeyword);
         } else {
-          console.log(`❌ IT 키워드 제외: "${selectedIT}" (의미 유사도: ${maxSimilarity}점 > ${semanticThreshold}점)`);
+          allITKeywords.push(selectedKeyword);
         }
-      }
-      
-      // Finance 키워드 AI 검증
-      if (selectedFinance && allFinanceKeywords.length < minRequiredFinance) {
-        const maxSimilarity = await this.verifySemanticUniqueness(selectedFinance, existingTitles);
-        
-        if (maxSimilarity <= semanticThreshold) {
-          console.log(`✅ Finance 키워드 허용: "${selectedFinance}" (의미 유사도: ${maxSimilarity}점)`);
-          allFinanceKeywords.push(selectedFinance);
-        } else {
-          console.log(`❌ Finance 키워드 제외: "${selectedFinance}" (의미 유사도: ${maxSimilarity}점 > ${semanticThreshold}점)`);
-        }
+      } else {
+        console.log(`❌ 키워드 최종 제외: "${selectedKeyword}" (의미 유사도: ${maxSimilarity}점 > ${semanticThreshold}점)`);
       }
 
       console.log(`📊 현재까지 수집된 IT 키워드: ${allITKeywords.length}개`);
