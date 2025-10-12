@@ -14,9 +14,12 @@ import BloggerPublisher from '../src/modules/bloggerPublisher.js';
 class BlogAutomationRunner {
   constructor() {
     this.fileDb = new FileDatabase();
+    this.bloggerPublisher = new BloggerPublisher();
     this.keywordHarvester = new KeywordHarvester();
     this.contentGenerator = new ContentGenerator();
-    this.bloggerPublisher = new BloggerPublisher();
+    
+    // KeywordHarvester에 BloggerPublisher 주입
+    this.keywordHarvester.setBloggerPublisher(this.bloggerPublisher);
   }
 
   /**

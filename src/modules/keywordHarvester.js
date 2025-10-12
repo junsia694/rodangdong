@@ -17,6 +17,83 @@ class KeywordHarvester {
     this.model = this.genAI.getGenerativeModel({ model: config.gemini.model });
     this.db = new FileDatabase();
     this.trendCollector = new TrendKeywordCollector();
+    this.bloggerPublisher = null; // 필요시 주입
+  }
+
+  /**
+   * BloggerPublisher 인스턴스 설정
+   * @param {BloggerPublisher} publisher - BloggerPublisher 인스턴스
+   */
+  setBloggerPublisher(publisher) {
+    this.bloggerPublisher = publisher;
+  }
+
+  /**
+   * 두 문자열 간의 유사도 계산 (0-100)
+   * @param {string} str1 - 첫 번째 문자열
+   * @param {string} str2 - 두 번째 문자열
+   * @returns {number} 유사도 점수 (0-100)
+   */
+  calculateSimilarity(str1, str2) {
+    const s1 = str1.toLowerCase().trim();
+    const s2 = str2.toLowerCase().trim();
+    
+    // 완전 일치
+    if (s1 === s2) {
+      return 100;
+    }
+    
+    // 단어 단위로 분리
+    const words1 = s1.split(/\s+/).filter(w => w.length > 2);
+    const words2 = s2.split(/\s+/).filter(w => w.length > 2);
+    
+    if (words1.length === 0 || words2.length === 0) {
+      return 0;
+    }
+    
+    // 공통 단어 개수
+    const commonWords = words1.filter(w1 => 
+      words2.some(w2 => w1.includes(w2) || w2.includes(w1) || this.levenshteinDistance(w1, w2) <= 2)
+    );
+    
+    // 유사도 계산: (공통 단어 수 / 전체 단어 수) * 100
+    const similarity = (commonWords.length / Math.max(words1.length, words2.length)) * 100;
+    
+    return Math.round(similarity);
+  }
+
+  /**
+   * Levenshtein Distance 계산 (편집 거리)
+   * @param {string} str1 - 첫 번째 문자열
+   * @param {string} str2 - 두 번째 문자열
+   * @returns {number} 편집 거리
+   */
+  levenshteinDistance(str1, str2) {
+    const matrix = [];
+    
+    for (let i = 0; i <= str2.length; i++) {
+      matrix[i] = [i];
+    }
+    
+    for (let j = 0; j <= str1.length; j++) {
+      matrix[0][j] = j;
+    }
+    
+    for (let i = 1; i <= str2.length; i++) {
+      for (let j = 1; j <= str1.length; j++) {
+        if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
+          );
+        }
+      }
+    }
+    
+    return matrix[str2.length][str1.length];
   }
 
   /**
@@ -333,7 +410,7 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
   }
 
   /**
-   * Evergreen 키워드 수집 및 통합 (IT 2개 + 금융 1개 패턴)
+   * Evergreen 키워드 수집 및 통합 (블로그 게시글 유사도 기반)
    * @returns {Promise<Array<string>>} 통합된 키워드 배열
    */
   async harvestAllKeywords() {
@@ -348,29 +425,41 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
     console.log(`✅ IT Evergreen 키워드 ${itKeywords.length}개 생성 완료`);
     console.log(`✅ Finance Evergreen 키워드 ${financeKeywords.length}개 생성 완료`);
 
-    // 2. 이미 사용된 키워드 가져오기
-    const usedKeywords = await this.db.loadUsedKeywords();
-    console.log(`📋 이미 사용된 키워드: ${usedKeywords.length}개`);
+    // 2. 블로그 게시글 제목 가져오기
+    let existingTitles = [];
+    if (this.bloggerPublisher) {
+      existingTitles = await this.bloggerPublisher.getAllPostTitles();
+      console.log(`📋 블로그 게시글 ${existingTitles.length}개 제목 가져오기 완료`);
+    } else {
+      console.warn('⚠️  BloggerPublisher가 설정되지 않음. 파일 DB 사용');
+      const usedKeywords = await this.db.loadUsedKeywords();
+      existingTitles = usedKeywords.map(k => k.keyword || k).filter(k => k);
+      console.log(`📋 파일 DB에서 ${existingTitles.length}개 키워드 로드`);
+    }
 
-    // 3. 사용된 키워드를 문자열 배열로 변환
-    const usedKeywordStrings = usedKeywords.map(used => {
-      if (typeof used === 'string') {
-        return used.toLowerCase();
-      } else if (used && used.keyword) {
-        return used.keyword.toLowerCase();
-      }
-      return '';
-    }).filter(k => k.length > 0);
-
-    // 4. 이미 사용된 키워드 제외 (완전 일치만)
+    // 3. 유사도 필터링 (30점 이하만 허용)
+    const similarityThreshold = 30;
+    
     const newITKeywords = itKeywords.filter(keyword => {
-      const keywordLower = keyword.toLowerCase();
-      return !usedKeywordStrings.includes(keywordLower);
+      for (const existingTitle of existingTitles) {
+        const similarity = this.calculateSimilarity(keyword, existingTitle);
+        if (similarity > similarityThreshold) {
+          console.log(`❌ 유사 키워드 제외 (IT): "${keyword}" ↔ "${existingTitle}" (${similarity}점)`);
+          return false;
+        }
+      }
+      return true;
     });
 
     const newFinanceKeywords = financeKeywords.filter(keyword => {
-      const keywordLower = keyword.toLowerCase();
-      return !usedKeywordStrings.includes(keywordLower);
+      for (const existingTitle of existingTitles) {
+        const similarity = this.calculateSimilarity(keyword, existingTitle);
+        if (similarity > similarityThreshold) {
+          console.log(`❌ 유사 키워드 제외 (Finance): "${keyword}" ↔ "${existingTitle}" (${similarity}점)`);
+          return false;
+        }
+      }
+      return true;
     });
 
     console.log(`✅ 사용 가능한 IT 키워드: ${newITKeywords.length}개`);

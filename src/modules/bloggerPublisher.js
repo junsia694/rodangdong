@@ -65,6 +65,60 @@ class BloggerPublisher {
   }
 
   /**
+   * 블로그의 모든 게시글 제목 가져오기
+   * @param {number} maxResults - 가져올 최대 게시글 수 (기본 500)
+   * @returns {Promise<Array<string>>} 게시글 제목 배열
+   */
+  async getAllPostTitles(maxResults = 500) {
+    try {
+      console.log('📋 블로그 게시글 제목 가져오는 중...');
+      
+      const headers = await this.getAuthHeaders();
+      const allTitles = [];
+      let pageToken = null;
+      
+      do {
+        const params = {
+          maxResults: 100,
+          fetchBodies: false,
+          status: ['live', 'draft']
+        };
+        
+        if (pageToken) {
+          params.pageToken = pageToken;
+        }
+        
+        const response = await axios.get(
+          `https://www.googleapis.com/blogger/v3/blogs/${this.blogId}/posts`,
+          { headers, params }
+        );
+        
+        if (response.data.items) {
+          const titles = response.data.items.map(post => post.title);
+          allTitles.push(...titles);
+        }
+        
+        pageToken = response.data.nextPageToken;
+        
+        // maxResults 도달 시 중단
+        if (allTitles.length >= maxResults) {
+          break;
+        }
+        
+      } while (pageToken);
+      
+      const uniqueTitles = [...new Set(allTitles)];
+      console.log(`✅ 블로그 게시글 ${uniqueTitles.length}개 제목 가져오기 완료`);
+      
+      return uniqueTitles;
+      
+    } catch (error) {
+      console.error('게시글 제목 가져오기 실패:', error.response?.data || error.message);
+      return [];
+    }
+  }
+
+  /**
    * HTML 콘텐츠에 Blogger 스타일링 추가
    * @param {string} htmlContent - 원본 HTML 콘텐츠
    * @returns {string} 스타일링이 추가된 HTML

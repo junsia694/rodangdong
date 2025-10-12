@@ -14,10 +14,13 @@ import path from 'path';
  */
 class GitHubActionsBlog {
   constructor() {
+    this.bloggerPublisher = new BloggerPublisher();
     this.keywordHarvester = new KeywordHarvester();
     this.contentGenerator = new ContentGenerator();
-    this.bloggerPublisher = new BloggerPublisher();
     this.fileDb = new FileDatabase();
+    
+    // KeywordHarvester에 BloggerPublisher 주입
+    this.keywordHarvester.setBloggerPublisher(this.bloggerPublisher);
   }
 
   /**
