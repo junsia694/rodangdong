@@ -133,6 +133,38 @@ Selected Keyword:`;
   }
 
   /**
+   * 후보 중 가장 낮은 단어 유사도를 가진 키워드 선택
+   * @param {Array<string>} candidates - 후보 키워드 배열
+   * @param {Array<string>} existingTitles - 기존 게시글 제목 배열
+   * @returns {string} 가장 유사도 낮은 키워드
+   */
+  selectLowestSimilarityKeyword(candidates, existingTitles) {
+    let lowestKeyword = candidates[0];
+    let lowestMaxSimilarity = 100;
+    
+    for (const keyword of candidates) {
+      let maxSimilarity = 0;
+      
+      // 각 키워드에 대해 모든 기존 제목과 비교하여 최대 유사도 계산
+      for (const existingTitle of existingTitles) {
+        const similarity = this.calculateWordBasedSimilarity(keyword, existingTitle);
+        if (similarity > maxSimilarity) {
+          maxSimilarity = similarity;
+        }
+      }
+      
+      // 최대 유사도가 가장 낮은 키워드 선택
+      if (maxSimilarity < lowestMaxSimilarity) {
+        lowestMaxSimilarity = maxSimilarity;
+        lowestKeyword = keyword;
+      }
+    }
+    
+    console.log(`  → 최저 단어 유사도: ${lowestMaxSimilarity}점`);
+    return lowestKeyword;
+  }
+
+  /**
    * 의미론적 유사도 검증 (단일 키워드 - 2차 필터링)
    * @param {string} keyword - 검증할 키워드
    * @param {Array<string>} existingTitles - 기존 게시글 제목 배열
@@ -560,53 +592,47 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
 
       console.log(`✅ 1차 필터링 완료: IT ${itCandidates.length}개, Finance ${financeCandidates.length}개`);
 
-      // 4. 2차 필터링: AI 의미론적 유사도 검증 (40점 이하만 허용)
+      // 4. 1차 후보 중 가장 유사도 낮은 키워드 1개씩 선택
+      let selectedIT = null;
+      let selectedFinance = null;
+      
+      if (itCandidates.length > 0) {
+        selectedIT = this.selectLowestSimilarityKeyword(itCandidates, existingTitles);
+        console.log(`🎯 IT 후보 중 최저 유사도 키워드: "${selectedIT}"`);
+      }
+      
+      if (financeCandidates.length > 0) {
+        selectedFinance = this.selectLowestSimilarityKeyword(financeCandidates, existingTitles);
+        console.log(`🎯 Finance 후보 중 최저 유사도 키워드: "${selectedFinance}"`);
+      }
+
+      // 5. 2차 필터링: AI 의미론적 유사도 검증 (40점 이하만 허용)
       console.log('\n🤖 2차 필터링: AI 의미론적 유사도 검증 (40점 이하)...');
       const semanticThreshold = 40;
-      const newITKeywords = [];
-      const newFinanceKeywords = [];
       
-      // IT 키워드 검증
-      for (const keyword of itCandidates) {
-        const maxSimilarity = await this.verifySemanticUniqueness(keyword, existingTitles);
+      // IT 키워드 AI 검증
+      if (selectedIT && allITKeywords.length < minRequiredIT) {
+        const maxSimilarity = await this.verifySemanticUniqueness(selectedIT, existingTitles);
         
         if (maxSimilarity <= semanticThreshold) {
-          console.log(`✅ IT 키워드 허용: "${keyword}" (최대 유사도: ${maxSimilarity}점)`);
-          newITKeywords.push(keyword);
-          
-          // 충분한 키워드를 얻으면 중단
-          if (newITKeywords.length >= minRequiredIT) {
-            console.log(`✅ IT 키워드 충분 (${newITKeywords.length}개), 검증 중단`);
-            break;
-          }
+          console.log(`✅ IT 키워드 허용: "${selectedIT}" (의미 유사도: ${maxSimilarity}점)`);
+          allITKeywords.push(selectedIT);
         } else {
-          console.log(`❌ IT 키워드 제외: "${keyword}" (최대 유사도: ${maxSimilarity}점 > ${semanticThreshold}점)`);
+          console.log(`❌ IT 키워드 제외: "${selectedIT}" (의미 유사도: ${maxSimilarity}점 > ${semanticThreshold}점)`);
         }
       }
       
-      // Finance 키워드 검증
-      for (const keyword of financeCandidates) {
-        const maxSimilarity = await this.verifySemanticUniqueness(keyword, existingTitles);
+      // Finance 키워드 AI 검증
+      if (selectedFinance && allFinanceKeywords.length < minRequiredFinance) {
+        const maxSimilarity = await this.verifySemanticUniqueness(selectedFinance, existingTitles);
         
         if (maxSimilarity <= semanticThreshold) {
-          console.log(`✅ Finance 키워드 허용: "${keyword}" (최대 유사도: ${maxSimilarity}점)`);
-          newFinanceKeywords.push(keyword);
-          
-          // 충분한 키워드를 얻으면 중단
-          if (newFinanceKeywords.length >= minRequiredFinance) {
-            console.log(`✅ Finance 키워드 충분 (${newFinanceKeywords.length}개), 검증 중단`);
-            break;
-          }
+          console.log(`✅ Finance 키워드 허용: "${selectedFinance}" (의미 유사도: ${maxSimilarity}점)`);
+          allFinanceKeywords.push(selectedFinance);
         } else {
-          console.log(`❌ Finance 키워드 제외: "${keyword}" (최대 유사도: ${maxSimilarity}점 > ${semanticThreshold}점)`);
+          console.log(`❌ Finance 키워드 제외: "${selectedFinance}" (의미 유사도: ${maxSimilarity}점 > ${semanticThreshold}점)`);
         }
       }
-
-      console.log(`✅ 2차 필터링 완료: IT ${newITKeywords.length}개, Finance ${newFinanceKeywords.length}개`);
-
-      // 새로운 키워드 추가
-      allITKeywords.push(...newITKeywords);
-      allFinanceKeywords.push(...newFinanceKeywords);
 
       console.log(`📊 현재까지 수집된 IT 키워드: ${allITKeywords.length}개`);
       console.log(`📊 현재까지 수집된 Finance 키워드: ${allFinanceKeywords.length}개`);
