@@ -569,39 +569,57 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
     try {
       console.log(`🤖 AI에게 기존과 다른 ${category} Evergreen 키워드 요청 중...`);
       
-      const categoryPrompt = category === 'Finance' ? this.getFinanceEvergreenPrompt() : this.getITEvergreenPrompt();
-      
       const prompt = `
-${categoryPrompt}
+You are an expert content strategist. Generate ONE unique ${category} Evergreen topic.
 
-**CRITICAL - AVOID DUPLICATES:**
+**Category**: ${category === 'IT' ? 'Technology/IT/Programming/Software' : 'Finance/Investment/Personal Finance'}
 
-**Existing Blog Post Titles (${existingTitles.length} posts):**
+**Existing Blog Titles to AVOID (${existingTitles.length} posts):**
 ${existingTitles.slice(0, 200).map((title, i) => `${i + 1}. ${title}`).join('\n')}
-${existingTitles.length > 200 ? `\n... and ${existingTitles.length - 200} more titles` : ''}
+${existingTitles.length > 200 ? `\n... (${existingTitles.length - 200} more)` : ''}
 
-**IMPORTANT REQUIREMENTS:**
-1. Generate ONLY 1 topic that is COMPLETELY DIFFERENT from all existing titles above
-2. The topic must have LESS THAN 40% semantic similarity with any existing title
-3. DO NOT generate topics about concepts already covered in existing titles
-4. Focus on UNEXPLORED areas within ${category}
-5. Return ONLY the topic text, NO numbers, NO explanations
+**Task:**
+Generate ONE evergreen topic that is:
+1. Completely DIFFERENT from all existing titles (semantic similarity < 40%)
+2. Timeless and always searchable (not trendy or news-based)
+3. Specific and actionable (e.g., "How to...", "Understanding...", "What is...")
+4. 10-80 characters long
+5. In ENGLISH
 
-If you cannot find a sufficiently different topic (all would be >40% similar), return "NONE".
+**Examples of GOOD topics:**
+${category === 'IT' 
+  ? '- "Understanding WebAssembly: Performance and Use Cases"\n- "Implementing OAuth 2.0 Authentication in Web Applications"\n- "Graph Algorithms Explained: Dijkstra and Bellman-Ford"'
+  : '- "Understanding Mortgage Types: Fixed vs Adjustable Rate"\n- "How to Calculate Net Present Value for Investment Decisions"\n- "Basics of Estate Planning: Wills and Trusts Explained"'
+}
 
-New Unique Topic:`;
+**CRITICAL:**
+- Return ONLY the topic text (one line)
+- NO explanations, NO numbers, NO additional text
+- If you cannot generate a unique topic, return "NONE"
+
+Topic:`;
 
       const result = await this.model.generateContent(prompt);
       const response = await result.response;
-      const keyword = response.text().trim();
+      let keyword = response.text().trim();
       
-      // "NONE" 체크
-      if (keyword === "NONE" || keyword === "none" || keyword.length < 10) {
-        console.log(`  ❌ AI: 중복되지 않는 ${category} 키워드를 찾을 수 없음`);
+      // 첫 번째 줄만 추출 (여러 줄 응답 대비)
+      keyword = keyword.split('\n')[0].trim();
+      
+      // 따옴표 제거
+      keyword = keyword.replace(/^["'](.+)["']$/, '$1');
+      
+      // "Topic:" 같은 접두사 제거
+      keyword = keyword.replace(/^(Topic:|New Topic:|Unique Topic:)\s*/i, '').trim();
+      
+      console.log(`  🔍 AI 원본 응답: "${response.text().substring(0, 100)}..."`);
+      console.log(`  📝 추출된 키워드: "${keyword}"`);
+      
+      // "NONE" 체크 및 길이 검증
+      if (keyword === "NONE" || keyword === "none" || keyword.length < 10 || keyword.length > 150) {
+        console.log(`  ❌ AI: 유효하지 않은 키워드 (길이: ${keyword.length})`);
         return null;
       }
-      
-      console.log(`  ✅ AI 생성 키워드: "${keyword}"`);
       
       // 최종 검증: 기존 제목과 의미론적 유사도 체크
       if (existingTitles.length > 0) {
