@@ -532,7 +532,7 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
       console.log('⚠️  BloggerPublisher 미설정. 중복 체크 없이 진행');
     }
 
-    const maxAttempts = 5;
+    const maxAttempts = 10; // 5회 → 10회로 증가
     let attempt = 0;
 
     // AI에게 기존 게시글을 제외한 새로운 키워드 직접 요청
@@ -570,9 +570,9 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
       console.log(`🤖 AI에게 기존과 다른 ${category} Evergreen 키워드 요청 중...`);
       
       const prompt = `
-You are an expert content strategist. Generate ONE unique ${category} Evergreen topic.
+You are an expert content strategist. Generate ONE unique ${category} Evergreen topic from a BROAD range of subtopics.
 
-**Category**: ${category === 'IT' ? 'Technology/IT/Programming/Software' : 'Finance/Investment/Personal Finance'}
+**Category**: ${category === 'IT' ? 'Technology (ALL areas: Programming, Hardware, Software, Networks, Security, AI, Cloud, Mobile, Web, DevOps, Data, Gaming, IoT, etc.)' : 'Finance (ALL areas: Personal Finance, Investment, Banking, Insurance, Real Estate, Tax, Retirement, Business, Trading, Crypto basics, etc.)'}
 
 **Existing Blog Titles to AVOID (${existingTitles.length} posts):**
 ${existingTitles.slice(0, 200).map((title, i) => `${i + 1}. ${title}`).join('\n')}
@@ -580,21 +580,43 @@ ${existingTitles.length > 200 ? `\n... (${existingTitles.length - 200} more)` : 
 
 **Task:**
 Generate ONE evergreen topic that is:
-1. Completely DIFFERENT from all existing titles (semantic similarity < 40%)
-2. Timeless and always searchable (not trendy or news-based)
-3. Specific and actionable (e.g., "How to...", "Understanding...", "What is...")
-4. 10-80 characters long
-5. In ENGLISH
+1. COMPLETELY DIFFERENT from all existing titles (semantic similarity < 40%)
+2. From ANY subtopic within ${category} (explore diverse areas, not just popular ones)
+3. Timeless and always searchable (not trendy or news-based)
+4. Specific and actionable (e.g., "How to...", "Understanding...", "What is...", "Guide to...")
+5. 10-100 characters long (increased range for more variety)
+6. In ENGLISH
 
-**Examples of GOOD topics:**
+**Explore DIVERSE subtopics:**
 ${category === 'IT' 
-  ? '- "Understanding WebAssembly: Performance and Use Cases"\n- "Implementing OAuth 2.0 Authentication in Web Applications"\n- "Graph Algorithms Explained: Dijkstra and Bellman-Ford"'
-  : '- "Understanding Mortgage Types: Fixed vs Adjustable Rate"\n- "How to Calculate Net Present Value for Investment Decisions"\n- "Basics of Estate Planning: Wills and Trusts Explained"'
+  ? `- Programming: Python, Java, JavaScript, C++, Rust, Go, TypeScript, etc.
+- Web: HTML, CSS, React, Vue, Angular, Node.js, Django, Flask, etc.
+- Mobile: iOS, Android, React Native, Flutter, SwiftUI, etc.
+- Data: SQL, NoSQL, MongoDB, PostgreSQL, Redis, Elasticsearch, etc.
+- Cloud: AWS, Azure, GCP, Docker, Kubernetes, Terraform, etc.
+- AI/ML: Neural Networks, NLP, Computer Vision, TensorFlow, PyTorch, etc.
+- Security: Encryption, Authentication, Firewalls, Penetration Testing, etc.
+- DevOps: CI/CD, Jenkins, GitLab, Monitoring, Logging, etc.
+- Hardware: GPUs, CPUs, RAM, Storage, Networking equipment, etc.
+- Gaming: Game Engines, Unity, Unreal, Graphics Programming, etc.
+- Other: IoT, Blockchain basics, VR/AR, Quantum Computing concepts, etc.`
+  : `- Personal Finance: Budgeting, Saving, Emergency Funds, Debt Management, etc.
+- Investment: Stocks, Bonds, ETFs, Mutual Funds, REITs, Commodities, etc.
+- Retirement: 401k, IRA, Pension, Social Security, Retirement Planning, etc.
+- Real Estate: Home Buying, Mortgages, Property Investment, Rental Income, etc.
+- Tax: Tax Deductions, Tax Planning, Tax-Advantaged Accounts, etc.
+- Banking: Savings Accounts, Checking Accounts, CDs, Money Market, etc.
+- Credit: Credit Cards, Credit Scores, Loans, Interest Rates, etc.
+- Insurance: Life, Health, Auto, Home, Disability Insurance, etc.
+- Business: Startup Funding, Cash Flow, Business Accounting, etc.
+- Trading: Day Trading, Options, Futures, Technical Analysis, etc.
+- Crypto basics: Blockchain, Wallets, Exchanges (educational only, no price predictions)`
 }
 
 **CRITICAL:**
 - Return ONLY the topic text (one line)
 - NO explanations, NO numbers, NO additional text
+- Be CREATIVE and explore UNCOMMON subtopics
 - If you cannot generate a unique topic, return "NONE"
 
 Topic:`;
