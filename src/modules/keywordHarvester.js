@@ -182,11 +182,11 @@ ${existingTitles.slice(0, 50).map((t, i) => `${i + 1}. ${t}`).join('\n')}
 ${existingTitles.length > 50 ? `... (${existingTitles.length - 50} more)` : ''}
 
 Find the HIGHEST similarity score with any existing title (0-100):
-- 0-20: Completely different
-- 21-40: Related but distinct
-- 41-60: Similar
-- 61-80: Very similar
-- 81-100: Nearly identical
+- 0-30: Completely different
+- 31-50: Related but distinct (ACCEPTABLE)
+- 51-70: Similar
+- 71-85: Very similar
+- 86-100: Nearly identical
 
 Return ONLY a number (0-100), NO text.`;
 
@@ -580,7 +580,7 @@ ${existingTitles.length > 200 ? `\n... (${existingTitles.length - 200} more)` : 
 
 **Task:**
 Generate ONE evergreen topic that is:
-1. COMPLETELY DIFFERENT from all existing titles (semantic similarity < 40%)
+1. DIFFERENT from all existing titles (semantic similarity < 50%)
 2. From ANY subtopic within ${category} (explore diverse areas, not just popular ones)
 3. Timeless and always searchable (not trendy or news-based)
 4. Specific and actionable (e.g., "How to...", "Understanding...", "What is...", "Guide to...")
@@ -648,12 +648,12 @@ Topic:`;
         console.log(`  🔍 의미론적 유사도 최종 검증 중...`);
         const maxSimilarity = await this.verifySemanticUniqueness(keyword, existingTitles);
         
-        if (maxSimilarity > 40) {
-          console.log(`  ❌ 유사도 검증 실패: ${maxSimilarity}점 > 40점`);
+        if (maxSimilarity > 50) {
+          console.log(`  ❌ 유사도 검증 실패: ${maxSimilarity}점 > 50점`);
           return null;
         }
         
-        console.log(`  ✅ 유사도 검증 통과: ${maxSimilarity}점 ≤ 40점`);
+        console.log(`  ✅ 유사도 검증 통과: ${maxSimilarity}점 ≤ 50점`);
       }
       
       return keyword;
