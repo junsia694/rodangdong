@@ -517,22 +517,23 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
   }
 
   /**
-   * Evergreen 키워드 수집 (AI 기반 중복 방지)
+   * Evergreen 키워드 수집 (AI 기반 중복 방지 - 간소화)
    * @returns {Promise<Array<string>>} 선택된 키워드 배열 (1개)
    */
   async harvestAllKeywords() {
-    console.log('🌲 Evergreen 키워드 생성 및 중복 체크 시작...');
+    console.log('🌲 Evergreen 키워드 생성 시작...');
 
-    // 1. 블로그 게시글 제목 가져오기
-    let existingTitles = [];
+    // 1. 블로그 최근 50개 게시글 제목 가져오기
+    let recentTitles = [];
     if (this.bloggerPublisher) {
-      existingTitles = await this.bloggerPublisher.getAllPostTitles();
-      console.log(`📋 블로그 게시글 ${existingTitles.length}개 제목 가져오기 완료`);
+      const allTitles = await this.bloggerPublisher.getAllPostTitles();
+      recentTitles = allTitles.slice(0, 50); // 최근 50개만
+      console.log(`📋 최근 블로그 게시글 ${recentTitles.length}개 제목 가져오기 완료`);
     } else {
       console.log('⚠️  BloggerPublisher 미설정. 중복 체크 없이 진행');
     }
 
-    const maxAttempts = 10; // 5회 → 10회로 증가
+    const maxAttempts = 10;
     let attempt = 0;
 
     // AI에게 기존 게시글을 제외한 새로운 키워드 직접 요청
@@ -543,8 +544,8 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
       // IT와 Finance를 번갈아가며 요청 (IT, IT, Finance 패턴)
       const category = (attempt % 3 === 0) ? 'Finance' : 'IT';
       
-      // AI에게 기존 제목과 다른 키워드 요청
-      const newKeyword = await this.generateUniqueEvergreenKeyword(category, existingTitles);
+      // AI에게 기존 제목 핵심 키워드 제외하고 새로운 키워드 요청
+      const newKeyword = await this.generateUniqueEvergreenKeyword(category, recentTitles);
       
       if (newKeyword) {
         console.log(`\n🎉 새로운 ${category} 키워드 선택 완료!`);
@@ -560,66 +561,119 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
   }
 
   /**
-   * AI에게 기존 게시글과 중복되지 않는 새로운 Evergreen 키워드 직접 요청
+   * Evergreen 키워드 수집 (AI 기반 중복 방지 - 최대 간소화)
+   * @returns {Promise<Array<string>>} 선택된 키워드 배열 (1개)
+   */
+  async harvestAllKeywords() {
+    console.log('🌲 Evergreen 키워드 생성 시작...');
+
+    // 1. 블로그 최근 50개 게시글 제목 가져오기
+    let recentTitles = [];
+    if (this.bloggerPublisher) {
+      const allTitles = await this.bloggerPublisher.getAllPostTitles();
+      recentTitles = allTitles.slice(0, 50); // 최근 50개만
+      console.log(`📋 최근 블로그 게시글 ${recentTitles.length}개 제목 가져오기 완료`);
+    } else {
+      console.log('⚠️  BloggerPublisher 미설정. 중복 체크 없이 진행');
+    }
+
+    const maxAttempts = 10;
+    let attempt = 0;
+
+    // AI에게 기존 게시글 핵심 키워드를 제외한 새로운 키워드 직접 요청
+    while (attempt < maxAttempts) {
+      attempt++;
+      console.log(`\n🔄 시도 ${attempt}/${maxAttempts}: 새로운 키워드 생성 중...`);
+
+      // IT와 Finance를 번갈아가며 요청 (IT, IT, Finance 패턴)
+      const category = (attempt % 3 === 0) ? 'Finance' : 'IT';
+      
+      // 2. AI에게 기존 제목의 핵심 키워드를 제외하고 새로운 Evergreen 키워드 요청
+      const newKeyword = await this.generateUniqueEvergreenKeyword(category, recentTitles);
+      
+      if (newKeyword) {
+        console.log(`\n🎉 새로운 ${category} 키워드 선택 완료!`);
+        console.log(`✅ 최종 키워드: "${newKeyword}"`);
+        return [newKeyword];
+      } else {
+        console.log(`❌ ${category} 키워드 생성 실패. 재시도...`);
+      }
+    }
+
+    console.error(`\n❌ ${maxAttempts}번 시도 후에도 적합한 키워드를 찾지 못했습니다.`);
+    return [];
+  }
+
+  /**
+   * AI에게 기존 게시글 핵심 키워드를 제외한 새로운 Evergreen 키워드 직접 요청
    * @param {string} category - 'IT' 또는 'Finance'
-   * @param {Array<string>} existingTitles - 기존 게시글 제목 배열
+   * @param {Array<string>} recentTitles - 최근 게시글 제목 배열 (50개)
    * @returns {Promise<string|null>} 선택된 키워드
    */
-  async generateUniqueEvergreenKeyword(category, existingTitles) {
+  async generateUniqueEvergreenKeyword(category, recentTitles) {
     try {
-      console.log(`🤖 AI에게 기존과 다른 ${category} Evergreen 키워드 요청 중...`);
+      console.log(`🤖 AI에게 기존 핵심 키워드 제외하고 ${category} 키워드 요청 중...`);
       
       const prompt = `
-You are an expert content strategist. Generate ONE unique ${category} Evergreen topic from a BROAD range of subtopics.
+You are an expert content strategist. Generate ONE unique ${category} Evergreen topic.
 
 **Category**: ${category === 'IT' ? 'Technology (ALL areas: Programming, Hardware, Software, Networks, Security, AI, Cloud, Mobile, Web, DevOps, Data, Gaming, IoT, etc.)' : 'Finance (ALL areas: Personal Finance, Investment, Banking, Insurance, Real Estate, Tax, Retirement, Business, Trading, Crypto basics, etc.)'}
 
-**Existing Blog Titles to AVOID (${existingTitles.length} posts):**
-${existingTitles.slice(0, 200).map((title, i) => `${i + 1}. ${title}`).join('\n')}
-${existingTitles.length > 200 ? `\n... (${existingTitles.length - 200} more)` : ''}
+**Recent Blog Post Titles (Last 50 posts - AVOID these core topics/keywords):**
+${recentTitles.length > 0 ? recentTitles.map((title, i) => `${i + 1}. ${title}`).join('\n') : 'No existing posts'}
 
 **Task:**
-Generate ONE evergreen topic that is:
-1. DIFFERENT from all existing titles (semantic similarity < 50%)
-2. From ANY subtopic within ${category} (explore diverse areas, not just popular ones)
-3. Timeless and always searchable (not trendy or news-based)
-4. Specific and actionable (e.g., "How to...", "Understanding...", "What is...", "Guide to...")
-5. 10-100 characters long (increased range for more variety)
-6. In ENGLISH
+1. Analyze the CORE KEYWORDS/CONCEPTS in the existing titles above
+2. Generate ONE evergreen topic that uses COMPLETELY DIFFERENT core keywords/concepts
+3. Explore DIVERSE and UNCOMMON subtopics within ${category}
+4. Topic must be timeless and always searchable (not trendy)
+5. Topic should be specific and actionable
+6. Length: 15-100 characters
+7. Language: ENGLISH only
 
 **Explore DIVERSE subtopics:**
 ${category === 'IT' 
-  ? `- Programming: Python, Java, JavaScript, C++, Rust, Go, TypeScript, etc.
-- Web: HTML, CSS, React, Vue, Angular, Node.js, Django, Flask, etc.
-- Mobile: iOS, Android, React Native, Flutter, SwiftUI, etc.
-- Data: SQL, NoSQL, MongoDB, PostgreSQL, Redis, Elasticsearch, etc.
-- Cloud: AWS, Azure, GCP, Docker, Kubernetes, Terraform, etc.
-- AI/ML: Neural Networks, NLP, Computer Vision, TensorFlow, PyTorch, etc.
-- Security: Encryption, Authentication, Firewalls, Penetration Testing, etc.
-- DevOps: CI/CD, Jenkins, GitLab, Monitoring, Logging, etc.
-- Hardware: GPUs, CPUs, RAM, Storage, Networking equipment, etc.
-- Gaming: Game Engines, Unity, Unreal, Graphics Programming, etc.
-- Other: IoT, Blockchain basics, VR/AR, Quantum Computing concepts, etc.`
-  : `- Personal Finance: Budgeting, Saving, Emergency Funds, Debt Management, etc.
-- Investment: Stocks, Bonds, ETFs, Mutual Funds, REITs, Commodities, etc.
-- Retirement: 401k, IRA, Pension, Social Security, Retirement Planning, etc.
-- Real Estate: Home Buying, Mortgages, Property Investment, Rental Income, etc.
-- Tax: Tax Deductions, Tax Planning, Tax-Advantaged Accounts, etc.
-- Banking: Savings Accounts, Checking Accounts, CDs, Money Market, etc.
-- Credit: Credit Cards, Credit Scores, Loans, Interest Rates, etc.
-- Insurance: Life, Health, Auto, Home, Disability Insurance, etc.
-- Business: Startup Funding, Cash Flow, Business Accounting, etc.
-- Trading: Day Trading, Options, Futures, Technical Analysis, etc.
-- Crypto basics: Blockchain, Wallets, Exchanges (educational only, no price predictions)`
+  ? `- Programming: Python, Java, JavaScript, C++, Rust, Go, TypeScript, Swift, Kotlin, R, MATLAB, Scala, etc.
+- Web Development: HTML5, CSS3, React, Vue, Angular, Svelte, Node.js, Django, Flask, Laravel, Ruby on Rails, etc.
+- Mobile Development: iOS (Swift/SwiftUI), Android (Kotlin/Java), React Native, Flutter, Xamarin, Ionic, etc.
+- Databases: SQL, NoSQL, MySQL, PostgreSQL, MongoDB, Redis, Cassandra, Elasticsearch, Oracle, etc.
+- Cloud & Infrastructure: AWS, Azure, GCP, Docker, Kubernetes, Terraform, Ansible, CloudFormation, etc.
+- AI & Machine Learning: Neural Networks, Deep Learning, NLP, Computer Vision, Reinforcement Learning, etc.
+- Cybersecurity: Encryption, Authentication, Network Security, Ethical Hacking, Penetration Testing, etc.
+- DevOps: CI/CD, Jenkins, GitLab CI, GitHub Actions, Monitoring, Logging, Prometheus, Grafana, etc.
+- Data Science: Data Analysis, Pandas, NumPy, Data Visualization, Statistical Modeling, etc.
+- Hardware: CPU Architecture, GPU Computing, RAM, Storage Technologies, Network Equipment, etc.
+- Game Development: Unity, Unreal Engine, Godot, Game Physics, Graphics Programming, Shader Programming, etc.
+- Systems Programming: Operating Systems, Compilers, Interpreters, Memory Management, Concurrency, etc.
+- Networking: TCP/IP, HTTP, DNS, Load Balancing, CDN, VPN, Network Protocols, etc.
+- Quality Assurance: Unit Testing, Integration Testing, Test Automation, Performance Testing, etc.
+- Other: IoT, Edge Computing, Blockchain Technology, AR/VR, Quantum Computing Basics, etc.`
+  : `- Personal Finance: Budgeting, Saving Money, Emergency Funds, Debt Reduction, Financial Goals, etc.
+- Stock Market: Stock Trading Basics, Market Analysis, Stock Valuation, Dividend Investing, etc.
+- Bonds & Fixed Income: Government Bonds, Corporate Bonds, Bond Yields, Fixed Income Strategies, etc.
+- Investment Funds: ETFs, Mutual Funds, Index Funds, Hedge Funds, REITs, etc.
+- Retirement Planning: 401(k), IRA, Roth IRA, Pension Plans, Social Security, Annuities, etc.
+- Real Estate: Home Buying, Mortgages, Real Estate Investing, Rental Properties, Commercial RE, etc.
+- Tax Planning: Tax Deductions, Tax Credits, Tax-Advantaged Accounts, Capital Gains Tax, etc.
+- Banking: Savings Accounts, Checking Accounts, Certificates of Deposit, Money Market Accounts, etc.
+- Credit Management: Credit Scores, Credit Cards, Personal Loans, Credit Building, Debt Consolidation, etc.
+- Insurance: Life Insurance, Health Insurance, Auto Insurance, Home Insurance, Disability Insurance, etc.
+- Business Finance: Business Loans, Cash Flow Management, Business Accounting, Startup Funding, etc.
+- Trading Strategies: Day Trading, Swing Trading, Options Trading, Futures, Technical Analysis, etc.
+- Alternative Investments: Commodities, Precious Metals, Art, Collectibles, Peer-to-Peer Lending, etc.
+- Cryptocurrency Basics: Blockchain Fundamentals, Crypto Wallets, Exchange Basics (education only), etc.
+- Estate Planning: Wills, Trusts, Estate Tax, Inheritance Planning, Power of Attorney, etc.`
 }
 
-**CRITICAL:**
+**IMPORTANT:**
+- DO NOT repeat core keywords from existing titles
+- Explore UNCOMMON and UNDERREPRESENTED topics
+- Be CREATIVE and think outside the box
 - Return ONLY the topic text (one line)
-- NO explanations, NO numbers, NO additional text
-- Be CREATIVE and explore UNCOMMON subtopics
-- If you cannot generate a unique topic, return "NONE"
+- NO explanations, NO numbers, NO formatting
+- If impossible to find unique topic, return "NONE"
 
-Topic:`;
+New Evergreen Topic:`;
 
       const result = await this.model.generateContent(prompt);
       const response = await result.response;
@@ -632,9 +686,8 @@ Topic:`;
       keyword = keyword.replace(/^["'](.+)["']$/, '$1');
       
       // "Topic:" 같은 접두사 제거
-      keyword = keyword.replace(/^(Topic:|New Topic:|Unique Topic:)\s*/i, '').trim();
+      keyword = keyword.replace(/^(Topic:|New Topic:|Unique Topic:|New Evergreen Topic:)\s*/i, '').trim();
       
-      console.log(`  🔍 AI 원본 응답: "${response.text().substring(0, 100)}..."`);
       console.log(`  📝 추출된 키워드: "${keyword}"`);
       
       // "NONE" 체크 및 길이 검증
@@ -643,18 +696,8 @@ Topic:`;
         return null;
       }
       
-      // 최종 검증: 기존 제목과 의미론적 유사도 체크
-      if (existingTitles.length > 0) {
-        console.log(`  🔍 의미론적 유사도 최종 검증 중...`);
-        const maxSimilarity = await this.verifySemanticUniqueness(keyword, existingTitles);
-        
-        if (maxSimilarity > 50) {
-          console.log(`  ❌ 유사도 검증 실패: ${maxSimilarity}점 > 50점`);
-          return null;
-        }
-        
-        console.log(`  ✅ 유사도 검증 통과: ${maxSimilarity}점 ≤ 50점`);
-      }
+      // 3. 추가 의미론적 검증 안 함 (AI가 이미 체크했으므로)
+      console.log(`  ✅ 키워드 생성 완료 (추가 검증 없이 사용)`);
       
       return keyword;
       
