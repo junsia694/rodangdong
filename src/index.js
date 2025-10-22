@@ -96,8 +96,8 @@ class BlogAutomationApp {
         generatedAt: new Date().toISOString()
       };
       
-      // 5. Blogger에 한국어 버전 발행 (즉시 게시)
-      console.log('📤 Publishing Korean version to Blogger (immediate)...');
+      // 5. Blogger에 한국어 버전 발행 (24시간 후 예약 게시)
+      console.log('📤 Publishing Korean version to Blogger (scheduled in 24 hours)...');
       const koreanLabels = [
         'IT Trends (KR)',
         keyword.toLowerCase().replace(/\s+/g, '-')
@@ -105,13 +105,13 @@ class BlogAutomationApp {
       
       const koreanPublishResult = await this.bloggerPublisher.publishPost(
         koreanArticle, 
-        false,  // 즉시 게시
-        0,      // 예약 없음
+        false,  // 예약 게시
+        24,     // 24시간 후 게시
         koreanLabels  // 한국어 전용 라벨
       );
       
       if (koreanPublishResult.success) {
-        console.log(`✅ Korean version published immediately: ${koreanPublishResult.url}`);
+        console.log(`✅ Korean version scheduled for 24 hours later: ${koreanPublishResult.url}`);
       }
       
       return {

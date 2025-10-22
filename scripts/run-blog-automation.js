@@ -82,8 +82,8 @@ class BlogAutomationRunner {
       
       console.log(`✅ 한국어 블로그 콘텐츠 생성 완료\n`);
       
-      // 5단계: 한국어 블로그 즉시 게시
-      console.log('📤 5단계: 한국어 블로그 즉시 게시 중...');
+      // 5단계: 한국어 블로그 예약 게시 (24시간 후)
+      console.log('📤 5단계: 한국어 블로그 예약 게시 중 (24시간 후)...');
       const koreanLabels = [
         'IT Trends (KR)',
         targetKeyword.toLowerCase().replace(/\s+/g, '-')
@@ -91,15 +91,15 @@ class BlogAutomationRunner {
       
       const koreanPublishedPost = await this.bloggerPublisher.publishPost(
         koreanArticle,
-        false,  // 즉시 게시
-        0,      // 예약 없음
+        false,  // 예약 게시
+        24,     // 24시간 후 게시
         koreanLabels  // 한국어 전용 라벨
       );
       
       if (koreanPublishedPost.url) {
-        console.log(`✅ 한국어 블로그 즉시 게시 완료: ${koreanPublishedPost.url}\n`);
+        console.log(`✅ 한국어 블로그 24시간 후 예약 게시 완료: ${koreanPublishedPost.url}\n`);
       } else {
-        console.log(`✅ 한국어 블로그 게시 완료: ${koreanPublishedPost.postId}\n`);
+        console.log(`✅ 한국어 블로그 예약 게시 완료: ${koreanPublishedPost.postId}\n`);
       }
       
       // 6단계: 키워드 저장 (이미 harvestAndSaveKeywords에서 처리됨)
@@ -183,8 +183,8 @@ class BlogAutomationRunner {
       
       console.log(`✅ 한국어 블로그 콘텐츠 생성 완료\n`);
       
-      // 4단계: 한국어 블로그 즉시 게시
-      console.log('📤 한국어 블로그 즉시 게시 중...');
+      // 4단계: 한국어 블로그 예약 게시 (24시간 후)
+      console.log('📤 한국어 블로그 예약 게시 중 (24시간 후)...');
       const koreanLabels = [
         'IT Trends (KR)',
         keyword.toLowerCase().replace(/\s+/g, '-')
@@ -192,15 +192,15 @@ class BlogAutomationRunner {
       
       const koreanPublishedPost = await this.bloggerPublisher.publishPost(
         koreanArticle,
-        false,  // 즉시 게시
-        0,      // 예약 없음
+        false,  // 예약 게시
+        24,     // 24시간 후 게시
         koreanLabels  // 한국어 전용 라벨
       );
       
       if (koreanPublishedPost.url) {
-        console.log(`✅ 한국어 블로그 즉시 게시 완료: ${koreanPublishedPost.url}\n`);
+        console.log(`✅ 한국어 블로그 24시간 후 예약 게시 완료: ${koreanPublishedPost.url}\n`);
       } else {
-        console.log(`✅ 한국어 블로그 게시 완료: ${koreanPublishedPost.postId}\n`);
+        console.log(`✅ 한국어 블로그 예약 게시 완료: ${koreanPublishedPost.postId}\n`);
       }
       
       // 5단계: 키워드 저장

@@ -87,8 +87,8 @@ class GitHubActionsBlog {
       console.log(`✅ 한국어 콘텐츠 생성 완료`);
       console.log(`   - 한글 제목: ${koreanArticle.title}`);
       
-      // 5단계: 한국어 Blogger 즉시 게시
-      console.log('\n📤 5단계: 한국어 버전 Blogger 즉시 게시 중...');
+      // 5단계: 한국어 Blogger 예약 게시 (24시간 후)
+      console.log('\n📤 5단계: 한국어 버전 Blogger 예약 게시 중 (24시간 후)...');
       const koreanLabels = [
         'IT Trends (KR)',
         newKeyword.toLowerCase().replace(/\s+/g, '-')
@@ -96,12 +96,12 @@ class GitHubActionsBlog {
       
       const koreanPublishedPost = await this.bloggerPublisher.publishPost(
         koreanArticle,
-        false,  // 즉시 게시
-        0,      // 예약 없음
+        false,  // 예약 게시
+        24,     // 24시간 후 게시
         koreanLabels  // 한국어 전용 라벨
       );
       
-      console.log(`✅ 한국어 버전 즉시 게시 완료`);
+      console.log(`✅ 한국어 버전 24시간 후 예약 게시 완료`);
       console.log(`   - Post ID: ${koreanPublishedPost.postId}`);
       console.log(`   - 게시 URL: ${koreanPublishedPost.url}`);
       
