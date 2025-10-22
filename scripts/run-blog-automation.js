@@ -49,14 +49,13 @@ class BlogAutomationRunner {
       const qualityReport = this.contentGenerator.generateQualityReport(article);
       console.log(`✅ 영어 블로그 콘텐츠 생성 완료 (품질: ${qualityReport.qualityScore}/100)\n`);
       
-      // 3단계: 영어 블로그 게시
-      console.log('📤 3단계: 영어 블로그 Draft 저장 중...');
-      const publishedPost = await this.bloggerPublisher.publishPost(article);
+      // 3단계: 영어 블로그 예약 게시 (24시간 후)
+      console.log('📤 3단계: 영어 블로그 예약 게시 중 (24시간 후)...');
+      const publishedPost = await this.bloggerPublisher.publishPost(article, false, 24);
       if (publishedPost.url) {
-        console.log(`✅ 영어 블로그 게시 완료: ${publishedPost.url}\n`);
+        console.log(`✅ 영어 블로그 24시간 후 예약 게시 완료: ${publishedPost.url}\n`);
       } else {
-        console.log(`✅ 영어 블로그 Draft 저장 완료: ${publishedPost.postId}\n`);
-        console.log(`💡 Draft 상태로 저장되었습니다. Blogger에서 검토 후 게시하세요.\n`);
+        console.log(`✅ 영어 블로그 예약 게시 완료: ${publishedPost.postId}\n`);
       }
       
       // 4단계: 한국어 블로그 생성
@@ -150,14 +149,13 @@ class BlogAutomationRunner {
       const qualityReport = this.contentGenerator.generateQualityReport(article);
       console.log(`✅ 영어 블로그 콘텐츠 생성 완료 (품질: ${qualityReport.qualityScore}/100)\n`);
       
-      // 2단계: 영어 블로그 게시
-      console.log('📤 영어 블로그 Draft 저장 중...');
-      const publishedPost = await this.bloggerPublisher.publishPost(article);
+      // 2단계: 영어 블로그 예약 게시 (24시간 후)
+      console.log('📤 영어 블로그 예약 게시 중 (24시간 후)...');
+      const publishedPost = await this.bloggerPublisher.publishPost(article, false, 24);
       if (publishedPost.url) {
-        console.log(`✅ 영어 블로그 게시 완료: ${publishedPost.url}\n`);
+        console.log(`✅ 영어 블로그 24시간 후 예약 게시 완료: ${publishedPost.url}\n`);
       } else {
-        console.log(`✅ 영어 블로그 Draft 저장 완료: ${publishedPost.postId}\n`);
-        console.log(`💡 Draft 상태로 저장되었습니다. Blogger에서 검토 후 게시하세요.\n`);
+        console.log(`✅ 영어 블로그 예약 게시 완료: ${publishedPost.postId}\n`);
       }
       
       // 3단계: 한국어 콘텐츠 생성

@@ -63,16 +63,16 @@ class BlogAutomationApp {
       console.log(`📏 Word Count: ${qualityReport.wordCount}`);
       console.log(`🖼️  Images: ${qualityReport.imageCount}`);
       
-      // 3. Blogger에 영어 버전 발행 (예약 게시)
-      console.log('📤 Publishing English version to Blogger (scheduled)...');
+      // 3. Blogger에 영어 버전 발행 (24시간 후 예약 게시)
+      console.log('📤 Publishing English version to Blogger (scheduled in 24 hours)...');
       const publishResult = await this.bloggerPublisher.publishPost(
         article, 
         false, 
-        config.schedule.postScheduleHours
+        24  // 24시간 후 게시
       );
       
       if (publishResult.success) {
-        console.log(`✅ English version published: ${publishResult.url}`);
+        console.log(`✅ English version scheduled for 24 hours later: ${publishResult.url}`);
       }
       
       // 4. 한국어 콘텐츠 생성

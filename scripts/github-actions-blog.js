@@ -55,11 +55,11 @@ class GitHubActionsBlog {
       console.log(`   - 이미지 수: ${qualityReport.imageCount}개`);
       console.log(`   - 품질 점수: ${qualityReport.qualityScore}/100`);
       
-      // 3단계: 영어 Blogger 게시 (Draft)
-      console.log('\n📤 3단계: 영어 버전 Blogger Draft 저장 중...');
-      const publishedPost = await this.bloggerPublisher.publishPost(article, true); // Draft로 저장
+      // 3단계: 영어 Blogger 예약 게시 (24시간 후)
+      console.log('\n📤 3단계: 영어 버전 Blogger 예약 게시 중 (24시간 후)...');
+      const publishedPost = await this.bloggerPublisher.publishPost(article, false, 24); // 24시간 후 예약 게시
       
-      console.log(`✅ 영어 버전 Draft 저장 완료`);
+      console.log(`✅ 영어 버전 24시간 후 예약 게시 완료`);
       console.log(`   - Post ID: ${publishedPost.postId}`);
       console.log(`   - 게시 URL: ${publishedPost.url}`);
       
