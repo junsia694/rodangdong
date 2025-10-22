@@ -93,11 +93,14 @@ Korean translation (clean content only):
       // 이미지 정보 추출 (AI 우선 사용)
       const imageInfo = await this.extractImageInfo(markdownContent, keyword);
       
+      // 이미지 URL 가져오기 (한 번만)
+      const imageUrls = await this.fetchImageUrls(imageInfo);
+      
       // SEO 메타데이터 추출
       const seoData = this.extractSEOMetadata(markdownContent);
 
-      // HTML 변환
-      const htmlContent = await this.convertToHtml(markdownContent, imageInfo);
+      // HTML 변환 (이미 가져온 imageUrls 전달)
+      const htmlContent = await this.convertToHtml(markdownContent, imageInfo, imageUrls);
 
       return {
         keyword,
@@ -106,6 +109,7 @@ Korean translation (clean content only):
         content: htmlContent,
         markdownContent,
         imageInfo,
+        imageUrls,  // 이미지 URL 저장 (한국어 버전에서 재사용)
         seoData,
         wordCount: this.countWords(markdownContent),
         generatedAt: new Date().toISOString()
@@ -458,12 +462,19 @@ IMPORTANT: Respond ONLY in English. Use only the format above.
    * 마크다운을 HTML로 변환하고 이미지 삽입
    * @param {string} markdownContent - 마크다운 콘텐츠
    * @param {Array} imageInfo - 이미지 정보 배열
+   * @param {Array} imageUrls - 이미 가져온 이미지 URL 배열 (선택사항, 제공되지 않으면 새로 가져옴)
    * @returns {Promise<string>} HTML 콘텐츠
    */
-  async convertToHtml(markdownContent, imageInfo) {
+  async convertToHtml(markdownContent, imageInfo, imageUrls = null) {
     try {
-      // Unsplash에서 이미지 URL 가져오기
-      const imageUrls = await this.fetchImageUrls(imageInfo);
+      // 이미지 URL이 제공되지 않았으면 새로 가져오기
+      let finalImageUrls = imageUrls;
+      if (!finalImageUrls || finalImageUrls.length === 0) {
+        console.log('🔍 이미지 URL을 새로 가져옵니다...');
+        finalImageUrls = await this.fetchImageUrls(imageInfo);
+      } else {
+        console.log('♻️  기존 이미지 URL을 재사용합니다...');
+      }
       
       // 이미지 배치 제안 섹션 제거 (메타데이터 정리)
       let cleanMarkdown = this.removeImagePlacementMetadata(markdownContent);
@@ -472,7 +483,7 @@ IMPORTANT: Respond ONLY in English. Use only the format above.
       let htmlContent = this.md.render(cleanMarkdown);
 
       // 이미지 삽입 로직
-      htmlContent = this.insertImages(htmlContent, imageUrls, imageInfo);
+      htmlContent = this.insertImages(htmlContent, finalImageUrls, imageInfo);
 
       // HTML에서 마크다운 잔여물 제거
       htmlContent = this.cleanHtmlContent(htmlContent);

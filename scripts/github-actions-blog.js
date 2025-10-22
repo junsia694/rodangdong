@@ -68,9 +68,10 @@ class GitHubActionsBlog {
       const koreanMarkdown = await this.contentGenerator.translateToKorean(article.markdownContent);
       const koreanTitle = await this.contentGenerator.translateToKorean(article.title);
       
-      // 한국어 HTML 변환
+      // 한국어 HTML 변환 (영어 버전의 이미지 URL 재사용)
       const koreanImageInfo = article.imageInfo;
-      const koreanHtmlContent = await this.contentGenerator.convertToHtml(koreanMarkdown, koreanImageInfo);
+      const koreanImageUrls = article.imageUrls;  // 영어 버전의 이미지 URL 재사용
+      const koreanHtmlContent = await this.contentGenerator.convertToHtml(koreanMarkdown, koreanImageInfo, koreanImageUrls);
       
       const koreanArticle = {
         keyword: newKeyword,
