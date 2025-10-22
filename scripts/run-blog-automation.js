@@ -39,28 +39,70 @@ class BlogAutomationRunner {
         return;
       }
       
-      // 3단계: 첫 번째 키워드로 블로그 생성
+      // 2단계: 첫 번째 키워드로 영어 블로그 생성
       const targetKeyword = newKeywords[0];
-      console.log(`📝 3단계: "${targetKeyword}" 키워드로 블로그 생성 중...`);
+      console.log(`📝 2단계: "${targetKeyword}" 키워드로 영어 블로그 생성 중...`);
       
-      const article = await this.contentGenerator.generateArticle(targetKeyword);
+      const article = await this.contentGenerator.generateArticle(targetKeyword, 'en');
       
       // 품질 리포트 생성
       const qualityReport = this.contentGenerator.generateQualityReport(article);
-      console.log(`✅ 블로그 콘텐츠 생성 완료 (품질: ${qualityReport.qualityScore}/100)\n`);
+      console.log(`✅ 영어 블로그 콘텐츠 생성 완료 (품질: ${qualityReport.qualityScore}/100)\n`);
       
-      // 4단계: 블로그 게시
-      console.log('📤 4단계: 블로그 Draft 저장 중...');
+      // 3단계: 영어 블로그 게시
+      console.log('📤 3단계: 영어 블로그 Draft 저장 중...');
       const publishedPost = await this.bloggerPublisher.publishPost(article);
       if (publishedPost.url) {
-        console.log(`✅ 블로그 게시 완료: ${publishedPost.url}\n`);
+        console.log(`✅ 영어 블로그 게시 완료: ${publishedPost.url}\n`);
       } else {
-        console.log(`✅ 블로그 Draft 저장 완료: ${publishedPost.postId}\n`);
+        console.log(`✅ 영어 블로그 Draft 저장 완료: ${publishedPost.postId}\n`);
         console.log(`💡 Draft 상태로 저장되었습니다. Blogger에서 검토 후 게시하세요.\n`);
       }
       
-      // 5단계: 키워드 저장 (이미 harvestAndSaveKeywords에서 처리됨)
-      console.log('💾 5단계: 키워드 저장 완료\n');
+      // 4단계: 한국어 블로그 생성
+      console.log('🇰🇷 4단계: 한국어 블로그 생성 중...');
+      const koreanMarkdown = await this.contentGenerator.translateToKorean(article.markdownContent);
+      const koreanTitle = await this.contentGenerator.translateToKorean(article.title);
+      
+      // 한국어 HTML 변환
+      const koreanImageInfo = article.imageInfo;
+      const koreanHtmlContent = await this.contentGenerator.convertToHtml(koreanMarkdown, koreanImageInfo);
+      
+      const koreanArticle = {
+        keyword: targetKeyword,
+        title: koreanTitle,
+        metaDescription: await this.contentGenerator.translateToKorean(article.metaDescription),
+        content: koreanHtmlContent,
+        markdownContent: koreanMarkdown,
+        imageInfo: koreanImageInfo,
+        wordCount: this.contentGenerator.countWords(koreanMarkdown),
+        generatedAt: new Date().toISOString()
+      };
+      
+      console.log(`✅ 한국어 블로그 콘텐츠 생성 완료\n`);
+      
+      // 5단계: 한국어 블로그 즉시 게시
+      console.log('📤 5단계: 한국어 블로그 즉시 게시 중...');
+      const koreanLabels = [
+        'IT Trends (KR)',
+        targetKeyword.toLowerCase().replace(/\s+/g, '-')
+      ];
+      
+      const koreanPublishedPost = await this.bloggerPublisher.publishPost(
+        koreanArticle,
+        false,  // 즉시 게시
+        0,      // 예약 없음
+        koreanLabels  // 한국어 전용 라벨
+      );
+      
+      if (koreanPublishedPost.url) {
+        console.log(`✅ 한국어 블로그 즉시 게시 완료: ${koreanPublishedPost.url}\n`);
+      } else {
+        console.log(`✅ 한국어 블로그 게시 완료: ${koreanPublishedPost.postId}\n`);
+      }
+      
+      // 6단계: 키워드 저장 (이미 harvestAndSaveKeywords에서 처리됨)
+      console.log('💾 6단계: 키워드 저장 완료\n');
       
       // 결과 요약
       console.log('🎉 블로그 자동화 완료!');
@@ -68,12 +110,19 @@ class BlogAutomationRunner {
       console.log(`📊 수집된 키워드: ${newKeywords.length}개`);
       console.log(`🆕 새로운 키워드: ${newKeywords.length}개`);
       console.log(`📝 게시된 키워드: ${targetKeyword}`);
+      console.log(`\n🇺🇸 영어 버전:`);
       if (publishedPost.url) {
-        console.log(`🔗 게시 URL: ${publishedPost.url}`);
+        console.log(`   🔗 게시 URL: ${publishedPost.url}`);
       } else {
-        console.log(`📝 Draft ID: ${publishedPost.postId}`);
+        console.log(`   📝 Draft ID: ${publishedPost.postId}`);
       }
-      console.log(`📈 품질 점수: ${qualityReport.qualityScore}/100`);
+      console.log(`\n🇰🇷 한국어 버전:`);
+      if (koreanPublishedPost.url) {
+        console.log(`   🔗 게시 URL: ${koreanPublishedPost.url}`);
+      } else {
+        console.log(`   📝 Post ID: ${koreanPublishedPost.postId}`);
+      }
+      console.log(`\n📈 품질 점수: ${qualityReport.qualityScore}/100`);
       console.log(`📏 단어 수: ${qualityReport.wordCount}개`);
       console.log(`🖼️  이미지 수: ${qualityReport.imageCount}개`);
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -92,25 +141,67 @@ class BlogAutomationRunner {
     console.log(`🎯 단일 키워드 모드: "${keyword}"\n`);
     
     try {
-      // 1단계: 블로그 생성
-      console.log('📝 블로그 콘텐츠 생성 중...');
-      const article = await this.contentGenerator.generateArticle(keyword);
+      // 1단계: 영어 블로그 생성
+      console.log('📝 영어 블로그 콘텐츠 생성 중...');
+      const article = await this.contentGenerator.generateArticle(keyword, 'en');
       
       // 품질 리포트 생성
       const qualityReport = this.contentGenerator.generateQualityReport(article);
-      console.log(`✅ 블로그 콘텐츠 생성 완료 (품질: ${qualityReport.qualityScore}/100)\n`);
+      console.log(`✅ 영어 블로그 콘텐츠 생성 완료 (품질: ${qualityReport.qualityScore}/100)\n`);
       
-      // 2단계: 블로그 게시
-      console.log('📤 블로그 Draft 저장 중...');
+      // 2단계: 영어 블로그 게시
+      console.log('📤 영어 블로그 Draft 저장 중...');
       const publishedPost = await this.bloggerPublisher.publishPost(article);
       if (publishedPost.url) {
-        console.log(`✅ 블로그 게시 완료: ${publishedPost.url}\n`);
+        console.log(`✅ 영어 블로그 게시 완료: ${publishedPost.url}\n`);
       } else {
-        console.log(`✅ 블로그 Draft 저장 완료: ${publishedPost.postId}\n`);
+        console.log(`✅ 영어 블로그 Draft 저장 완료: ${publishedPost.postId}\n`);
         console.log(`💡 Draft 상태로 저장되었습니다. Blogger에서 검토 후 게시하세요.\n`);
       }
       
-      // 3단계: 키워드 저장
+      // 3단계: 한국어 콘텐츠 생성
+      console.log('🇰🇷 한국어 블로그 콘텐츠 생성 중...');
+      const koreanMarkdown = await this.contentGenerator.translateToKorean(article.markdownContent);
+      const koreanTitle = await this.contentGenerator.translateToKorean(article.title);
+      
+      // 한국어 HTML 변환
+      const koreanImageInfo = article.imageInfo;
+      const koreanHtmlContent = await this.contentGenerator.convertToHtml(koreanMarkdown, koreanImageInfo);
+      
+      const koreanArticle = {
+        keyword: keyword,
+        title: koreanTitle,
+        metaDescription: await this.contentGenerator.translateToKorean(article.metaDescription),
+        content: koreanHtmlContent,
+        markdownContent: koreanMarkdown,
+        imageInfo: koreanImageInfo,
+        wordCount: this.contentGenerator.countWords(koreanMarkdown),
+        generatedAt: new Date().toISOString()
+      };
+      
+      console.log(`✅ 한국어 블로그 콘텐츠 생성 완료\n`);
+      
+      // 4단계: 한국어 블로그 즉시 게시
+      console.log('📤 한국어 블로그 즉시 게시 중...');
+      const koreanLabels = [
+        'IT Trends (KR)',
+        keyword.toLowerCase().replace(/\s+/g, '-')
+      ];
+      
+      const koreanPublishedPost = await this.bloggerPublisher.publishPost(
+        koreanArticle,
+        false,  // 즉시 게시
+        0,      // 예약 없음
+        koreanLabels  // 한국어 전용 라벨
+      );
+      
+      if (koreanPublishedPost.url) {
+        console.log(`✅ 한국어 블로그 즉시 게시 완료: ${koreanPublishedPost.url}\n`);
+      } else {
+        console.log(`✅ 한국어 블로그 게시 완료: ${koreanPublishedPost.postId}\n`);
+      }
+      
+      // 5단계: 키워드 저장
       console.log('💾 사용된 키워드 저장 중...');
       await this.fileDb.saveUsedKeyword(keyword);
       console.log(`✅ 키워드 "${keyword}" 저장 완료\n`);
@@ -119,12 +210,19 @@ class BlogAutomationRunner {
       console.log('🎉 단일 키워드 블로그 생성 완료!');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log(`📝 게시된 키워드: ${keyword}`);
+      console.log(`\n🇺🇸 영어 버전:`);
       if (publishedPost.url) {
-        console.log(`🔗 게시 URL: ${publishedPost.url}`);
+        console.log(`   🔗 게시 URL: ${publishedPost.url}`);
       } else {
-        console.log(`📝 Draft ID: ${publishedPost.postId}`);
+        console.log(`   📝 Draft ID: ${publishedPost.postId}`);
       }
-      console.log(`📈 품질 점수: ${qualityReport.qualityScore}/100`);
+      console.log(`\n🇰🇷 한국어 버전:`);
+      if (koreanPublishedPost.url) {
+        console.log(`   🔗 게시 URL: ${koreanPublishedPost.url}`);
+      } else {
+        console.log(`   📝 Post ID: ${koreanPublishedPost.postId}`);
+      }
+      console.log(`\n📈 품질 점수: ${qualityReport.qualityScore}/100`);
       console.log(`📏 단어 수: ${qualityReport.wordCount}개`);
       console.log(`🖼️  이미지 수: ${qualityReport.imageCount}개`);
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');

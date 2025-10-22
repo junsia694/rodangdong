@@ -248,9 +248,10 @@ class BloggerPublisher {
    * @param {Object} article - 발행할 아티클 객체
    * @param {boolean} isDraft - 초안으로 저장할지 여부 (기본값: true)
    * @param {number} scheduleHours - 몇 시간 후 발행할지 (기본값: 24시간)
+   * @param {Array} customLabels - 커스텀 라벨 배열 (선택사항)
    * @returns {Promise<Object>} 발행 결과
    */
-  async publishPost(article, isDraft = true, scheduleHours = 24) {
+  async publishPost(article, isDraft = true, scheduleHours = 24, customLabels = null) {
     try {
       console.log(`Publishing post for keyword: ${article.keyword}`);
 
@@ -261,7 +262,7 @@ class BloggerPublisher {
       const postData = {
         title: article.title,
         content: enhancedHtml,
-        labels: [
+        labels: customLabels || [
           'Technology',
           'IT Trends',
           article.keyword.toLowerCase().replace(/\s+/g, '-')
