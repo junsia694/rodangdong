@@ -123,7 +123,7 @@ Korean translation (clean content only):
 
   /**
    * 콘텐츠 품질 검증
-   * @param {string} content - 검증할 마크다운 콘텐츠
+   * @param {string} content - 검증할 콘텐츠 (마크다운 또는 HTML)
    * @returns {Object} 검증 결과
    */
   validateContent(content) {
@@ -136,9 +136,10 @@ Korean translation (clean content only):
       errors.push(`Word count (${wordCount}) is below minimum (${config.app.minWordCount})`);
     }
 
-    // 섹션 수 검증 (정형화된 섹션명 대신 H2 태그 개수로 검증)
-    const h2Sections = content.match(/^## .+$/gm);
-    const sectionCount = h2Sections ? h2Sections.length : 0;
+    // 섹션 수 검증 (마크다운과 HTML 모두 지원)
+    const h2Markdown = content.match(/^## .+$/gm);
+    const h2Html = content.match(/<h2[^>]*>.*?<\/h2>/gi);
+    const sectionCount = (h2Markdown ? h2Markdown.length : 0) + (h2Html ? h2Html.length : 0);
     
     if (sectionCount < 5) {
       warnings.push(`Article has only ${sectionCount} sections. Recommended: 6-8 sections for comprehensive content.`);
@@ -153,13 +154,21 @@ Korean translation (clean content only):
       warnings.push(`Insufficient image suggestions (minimum ${config.app.minImagesCount} required)`);
     }
 
-    // SEO 정보 검증 (유연하게 - 제목과 첫 번째 섹션 확인)
-    const hasTitle = content.match(/^# (.+)$/m);
-    const hasDescription = content.match(/## .+?\n+(.+?)(?:\n\n|\n##)/s);
+    // SEO 정보 검증 (마크다운과 HTML 모두 지원)
+    // 마크다운 형식: # 제목
+    const hasMarkdownTitle = content.match(/^# (.+)$/m);
+    // HTML 형식: <h1>제목</h1>
+    const hasHtmlTitle = content.match(/<h1[^>]*>(.+?)<\/h1>/i);
+    const hasTitle = hasMarkdownTitle || hasHtmlTitle;
     
     if (!hasTitle) {
       errors.push('Missing article title');
     }
+    
+    // Description 검증 (마크다운과 HTML 모두 지원)
+    const hasMarkdownDescription = content.match(/## .+?\n+(.+?)(?:\n\n|\n##)/s);
+    const hasHtmlDescription = content.match(/<h2[^>]*>.*?<\/h2>.*?<p[^>]*>(.+?)<\/p>/is);
+    const hasDescription = hasMarkdownDescription || hasHtmlDescription;
     
     if (!hasDescription) {
       // Description이 없어도 경고만 하고 에러는 아님
@@ -395,10 +404,18 @@ IMPORTANT: Respond ONLY in English. Use only the format above.
   extractSEOMetadata(content) {
     const seoData = {};
 
-    // 첫 번째 제목(#)을 SEO Title로 사용
-    const titleMatch = content.match(/^# (.+)$/m);
+    // 첫 번째 제목 추출 (마크다운 또는 HTML 형식 지원)
+    // 마크다운 형식: # 제목
+    const markdownTitleMatch = content.match(/^# (.+)$/m);
+    // HTML 형식: <h1>제목</h1>
+    const htmlTitleMatch = content.match(/<h1[^>]*>(.+?)<\/h1>/i);
+    
+    const titleMatch = markdownTitleMatch || htmlTitleMatch;
     if (titleMatch) {
       let title = titleMatch[1].trim();
+      
+      // HTML 태그 제거 (HTML 형식인 경우)
+      title = title.replace(/<[^>]+>/g, '').trim();
       
       // 대괄호 안의 지시사항 제거
       title = title.replace(/\[.*?\]/g, '').trim();
@@ -412,10 +429,15 @@ IMPORTANT: Respond ONLY in English. Use only the format above.
     }
 
     // 첫 번째 섹션의 첫 번째 문단을 Meta Description으로 사용 (155자 제한)
-    // "Understanding" 대신 첫 번째 H2 섹션을 찾음
-    const firstSectionMatch = content.match(/## .+?\n+(.+?)(?:\n\n|\n##)/s);
+    // 마크다운 형식: ## 섹션\n내용
+    const markdownSectionMatch = content.match(/## .+?\n+(.+?)(?:\n\n|\n##)/s);
+    // HTML 형식: <h2>섹션</h2><p>내용</p>
+    const htmlSectionMatch = content.match(/<h2[^>]*>.*?<\/h2>\s*<p[^>]*>(.+?)<\/p>/is);
+    
+    const firstSectionMatch = markdownSectionMatch || htmlSectionMatch;
     if (firstSectionMatch) {
       let description = firstSectionMatch[1]
+        .replace(/<[^>]+>/g, '') // HTML 태그 제거
         .replace(/\[.*?\]/g, '') // 대괄호 안의 지시사항 제거
         .replace(/[*_`]/g, '') // 마크다운 문법 제거
         .replace(/\n/g, ' ') // 줄바꿈을 공백으로
@@ -429,9 +451,15 @@ IMPORTANT: Respond ONLY in English. Use only the format above.
       seoData.description = description;
     } else {
       // 첫 번째 문단을 찾지 못한 경우 전체에서 첫 문단 추출
-      const anyParagraphMatch = content.match(/\n\n(.+?)(?:\n\n)/s);
+      // 마크다운 형식
+      const markdownParagraphMatch = content.match(/\n\n(.+?)(?:\n\n)/s);
+      // HTML 형식
+      const htmlParagraphMatch = content.match(/<p[^>]*>(.+?)<\/p>/i);
+      
+      const anyParagraphMatch = markdownParagraphMatch || htmlParagraphMatch;
       if (anyParagraphMatch) {
         let description = anyParagraphMatch[1]
+          .replace(/<[^>]+>/g, '') // HTML 태그 제거
           .replace(/\[.*?\]/g, '')
           .replace(/[*_`#]/g, '')
           .replace(/\n/g, ' ')
@@ -476,11 +504,27 @@ IMPORTANT: Respond ONLY in English. Use only the format above.
         console.log('♻️  기존 이미지 URL을 재사용합니다...');
       }
       
-      // 이미지 배치 제안 섹션 제거 (메타데이터 정리)
-      let cleanMarkdown = this.removeImagePlacementMetadata(markdownContent);
+      // HTML 형식인지 확인 (<h1> 태그가 있으면 HTML 형식)
+      const isHtmlFormat = /<h1[^>]*>/i.test(markdownContent);
       
-      // 마크다운을 HTML로 변환
-      let htmlContent = this.md.render(cleanMarkdown);
+      let htmlContent;
+      if (isHtmlFormat) {
+        // 이미 HTML 형식이면 그대로 사용
+        console.log('📄 HTML 형식 콘텐츠 감지 - 변환 없이 사용');
+        htmlContent = markdownContent;
+        
+        // 이미지 배치 제안 섹션 제거 (메타데이터 정리)
+        htmlContent = this.removeImagePlacementMetadata(htmlContent);
+      } else {
+        // 마크다운 형식이면 HTML로 변환
+        console.log('📝 마크다운 형식 콘텐츠 감지 - HTML로 변환');
+        
+        // 이미지 배치 제안 섹션 제거 (메타데이터 정리)
+        let cleanMarkdown = this.removeImagePlacementMetadata(markdownContent);
+        
+        // 마크다운을 HTML로 변환
+        htmlContent = this.md.render(cleanMarkdown);
+      }
 
       // 이미지 삽입 로직
       htmlContent = this.insertImages(htmlContent, finalImageUrls, imageInfo);
