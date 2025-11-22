@@ -89,11 +89,12 @@ The output must strictly follow the required Tistory blog format structure below
 16. Use clear layout separation and design elements suitable for general readers
 
 --- Required Tistory Article Structure (HTML Format) ---
+**EXACTLY match the design from https://rodangdong.tistory.com/225**
 
-<h1>[Write an engaging H1 title that captures the unique essence of ${keyword} - this is DIFFERENT from the SEO title]</h1>
+<h1>[Write an engaging H1 title that captures the unique essence of ${keyword} - this is DIFFERENT from the SEO title. Make it catchy and attention-grabbing like "MS 에이전트 365로 바뀌는 업무 혁신, AI가 일하는 시대"]</h1>
 
-<div class="related-articles">
-<h2>📌 같이 보면 좋은 글</h2>
+<h3>📌 같이 보면 좋은 글</h3>
+
 <ul>
 <li>▸ <a href="https://rodangdong.tistory.com/[random-article-1]" target="_blank">[Related Article Title 1]</a></li>
 <li>▸ <a href="https://rodangdong.tistory.com/[random-article-2]" target="_blank">[Related Article Title 2]</a></li>
@@ -101,74 +102,105 @@ The output must strictly follow the required Tistory blog format structure below
 <li>▸ <a href="https://rodangdong.tistory.com/[random-article-4]" target="_blank">[Related Article Title 4]</a></li>
 <li>▸ <a href="https://rodangdong.tistory.com/[random-article-5]" target="_blank">[Related Article Title 5]</a></li>
 </ul>
-</div>
 
-<div class="table-of-contents">
-<h2>📑 목차</h2>
+<h1>[Write the main H1 title again - this is the actual article title, different from the SEO title above. Example: "MS 에이전트 365, AI가 직접 일하는 새로운 업무 환경"]</h1>
+
+<p>[Start with an engaging opening paragraph that hooks the reader. Explain what ${keyword} is and why it matters. Use friendly, conversational tone. This paragraph should be 2-3 sentences that immediately capture attention. Include context and significance.]</p>
+
+<h2>📋 목차</h2>
+
 <ol>
-<li><a href="#section1">[Section 1 Title]</a></li>
-<li><a href="#section2">[Section 2 Title]</a></li>
-<li><a href="#section3">[Section 3 Title]</a></li>
-<li><a href="#section4">[Section 4 Title]</a></li>
-<li><a href="#section5">[Section 5 Title]</a></li>
-<li><a href="#faq">자주 묻는 질문 (FAQ)</a></li>
+<li>[Section 1 Title]</li>
+<li>[Section 2 Title]</li>
+<li>[Section 3 Title]</li>
+<li>[Section 4 Title]</li>
+<li>[Section 5 Title]</li>
+<li>[Section 6 Title or FAQ]</li>
 </ol>
-</div>
 
-<div class="official-site-link">
-[If official website exists, include:]
+[If official website exists, include this right after 목차:]
 <p><strong>공식 사이트:</strong> <a href="[official-website-url]" target="_blank">[Official Website Name] 바로가기</a></p>
-</div>
 
-<h2 id="section1">[Create a friendly, beginner-friendly section title introducing ${keyword} - use simple language like "${keyword}이란 무엇인가요?" or "처음 들어보는 ${keyword}, 쉽게 알아보기"]</h2>
+<h2>[Section 1 Title - use format like "${keyword}란 무엇인가: [subtitle]" or "${keyword}란 무엇인가: [descriptive subtitle]"]</h2>
 
-<p>[Start with a friendly, welcoming tone like "이것이 무엇인지 궁금하셨나요?" or "혹시 ${keyword}라는 말을 들어보셨나요?". Explain **${keyword}** as if explaining to someone who has never heard of it. Use simple everyday language and analogies. Avoid technical jargon. Focus on "이것이 무엇인지", "왜 유용한지", "일상생활에서 어떻게 쓰이는지". Include natural internal link to related article from https://rodangdong.tistory.com]</p>
+<p>[Start with an engaging paragraph that explains what ${keyword} is. Use friendly, conversational tone. Include key concepts and why it matters. This should be 2-3 sentences.]</p>
 
+<p>[Continue with more details, examples, or context. This should be 1-2 more paragraphs. Include natural internal link to related article from https://rodangdong.tistory.com using format: <strong>🔗 관련 자료:</strong> <a href="https://rodangdong.tistory.com/[article-id]" target="_blank">[link text]</a>도 함께 확인해보세요.]</p>
+
+<p><strong>💡 핵심 포인트:</strong> [One key insight or important fact about ${keyword}]</p>
+
+<p>[Image placement - after first section content, before next section]</p>
 <img src="[official-site-logo-url OR web-searched-image-url]" alt="[Detailed ALT text describing the image, max 125 chars]" />
-<p class="image-caption">[Image description explaining what the image shows]</p>
+<p>[Image caption text describing what the image shows - natural, friendly description]</p>
 
-<h2 id="section2">[Create a friendly section title about getting started with ${keyword} - use language like "${keyword} 시작하기", "초보자도 따라할 수 있는 ${keyword} 사용법"]</h2>
+<h2>[Section 2 Title - use format like "[Catchy phrase]: [subtitle]" or "[Action-oriented title]: [descriptive subtitle]"]</h2>
 
-<p>[Provide step-by-step guidance in very simple language. Use "첫 번째", "두 번째" format. Include practical examples that anyone can follow. Avoid technical terms - if you must use them, explain in simple words first. Use friendly tone like "이렇게 하시면 됩니다", "쉽게 따라해보세요". Include natural internal link to related article from https://rodangdong.tistory.com]</p>
+<p>[Write engaging content explaining the second main topic. Use friendly, conversational tone. Include practical examples and real-world scenarios. This should be 2-3 sentences.]</p>
 
-<h2 id="section3">[Create a friendly section title about ${keyword} tools - use language like "${keyword}에 유용한 도구들", "초보자도 사용하기 쉬운 ${keyword} 도구 추천"]</h2>
+<p>[Continue with more details or examples. This should be 1-2 more paragraphs. Include natural internal link using format: <strong>🔗 관련 자료:</strong> <a href="https://rodangdong.tistory.com/[article-id]" target="_blank">[link text]</a>도 함께 확인해보세요.]</p>
 
-<p>[Introduce tools in simple terms. Explain what each tool does in everyday language. Focus on "무엇을 할 수 있는지", "왜 좋은지", "어떻게 사용하는지" in very simple steps. Avoid technical installation details - focus on practical benefits. Use friendly recommendations like "이 도구는 특히 초보자에게 좋아요". Include natural internal link to related article from https://rodangdong.tistory.com]</p>
+[If applicable, include highlight box:]
+<p><strong>💡 핵심 포인트:</strong> [One key insight]</p>
 
+<h2>[Section 3 Title - use format like "핵심 기능 [number]가지: [subtitle]" or "[Feature category]: [descriptive subtitle]"]</h2>
+
+<p>[Write introductory paragraph about key features, tools, or capabilities. Use friendly, conversational tone.]</p>
+
+<h3>1. [Feature/Tool Name 1]</h3>
+<p>[Description of feature 1 in simple terms. This should be 1-2 sentences.]</p>
+
+<h3>2. [Feature/Tool Name 2]</h3>
+<p>[Description of feature 2 in simple terms. This should be 1-2 sentences.]</p>
+
+<h3>3. [Feature/Tool Name 3]</h3>
+<p>[Description of feature 3 in simple terms. This should be 1-2 sentences.]</p>
+
+[Continue with more features as needed. Include natural internal link using format:]
+<p><strong>🔗 유사 도구:</strong> <a href="https://rodangdong.tistory.com/[article-id]" target="_blank">[link text]</a>을 활용해보세요.</p>
+
+<p>[Image placement - after section 3 content]</p>
 <img src="[official-site-example-image-url OR web-searched-image-url]" alt="[Detailed ALT text describing the image, max 125 chars]" />
-<p class="image-caption">[Image description explaining what the image shows]</p>
+<p>[Image caption text - natural, friendly description]</p>
 
-<h2 id="section4">[Create a friendly section title about ${keyword} 활용 예시 - use language like "${keyword} 실제 활용 사례", "일상생활에서 ${keyword} 활용하는 방법"]</h2>
+<h2>[Section 4 Title - use format like "[Action-oriented title]: [subtitle]" or "[Use case title]: [descriptive subtitle]"]</h2>
 
-<p>[Discuss real-world applications with concrete, relatable examples. Use everyday situations that readers can easily understand. Focus on practical benefits rather than technical details. Use examples like "예를 들어, ~할 때 이렇게 사용할 수 있어요". Avoid code examples unless absolutely necessary - if needed, explain what the code does in simple words. Include practical use cases that anyone can relate to]</p>
+<p>[Write content about practical applications, use cases, or real-world examples. Use friendly, conversational tone. Include specific examples that readers can relate to. This should be 2-3 sentences.]</p>
 
-<h2 id="section5">[Create a friendly comparison section title - use language like "${keyword} vs 다른 방법 비교", "언제 ${keyword}를 사용하면 좋을까요?"]</h2>
+<p>[Continue with more examples or scenarios. Include practical scenarios like "예를 들어, ~할 때 이렇게 사용할 수 있어요". This should be 1-2 more paragraphs.]</p>
 
-<p>[Compare **${keyword}** with alternatives in simple terms. Use everyday language to explain differences. Focus on "어떤 상황에서 어떤 것을 사용하면 좋은지" rather than technical comparisons. Use simple analogies like "~는 ~와 비슷하지만 ~한 점이 달라요". Help readers understand when to use ${keyword} vs alternatives in practical terms]</p>
+<h2>[Section 5 Title - use format like "[Comparison/Conclusion title]: [subtitle]" or "[Final insights title]: [descriptive subtitle]"]</h2>
 
-<h2 id="faq">자주 묻는 질문 (FAQ)</h2>
+<p>[Write concluding content, comparisons, or final insights. Use friendly, conversational tone. Help readers understand when to use ${keyword} vs alternatives, or summarize key takeaways. This should be 2-3 sentences.]</p>
 
-<dl>
-<dt><strong>Q1: [Beginner-friendly question about ${keyword} - use simple language like "${keyword}이 정확히 뭔가요?", "초보자도 사용할 수 있나요?"]</strong></dt>
-<dd>[Answer in very simple, friendly language. Use everyday examples. Avoid technical jargon. Explain as if talking to a friend]</dd>
+<p>[Continue with final thoughts or recommendations. This should be 1-2 more paragraphs.]</p>
 
-<dt><strong>Q2: [Practical question beginners would ask - like "어떻게 시작하나요?", "비용이 얼마인가요?", "어디서 사용할 수 있나요?"]</strong></dt>
-<dd>[Answer with practical, actionable information in simple terms. Focus on "어떻게", "얼마나", "어디서" in everyday language]</dd>
+<h2>자주 묻는 질문 (FAQ)</h2>
 
-<dt><strong>Q3: [Common beginner concern - like "어렵지 않나요?", "무료로 사용할 수 있나요?", "어떤 장점이 있나요?"]</strong></dt>
-<dd>[Reassure and explain benefits in simple terms. Use friendly, encouraging tone]</dd>
+<p><strong>Q1: [Beginner-friendly question about ${keyword} - use simple language like "${keyword}이 정확히 뭔가요?", "초보자도 사용할 수 있나요?"]</strong></p>
 
-<dt><strong>Q4: [Practical usage question - like "언제 사용하면 좋나요?", "다른 것과 뭐가 다른가요?"]</strong></dt>
-<dd>[Answer with practical examples and simple comparisons. Use everyday situations]</dd>
+<p>A1: [Answer in very simple, friendly language. Use everyday examples. Avoid technical jargon. Explain as if talking to a friend. This should be 2-3 sentences.]</p>
 
-<dt><strong>Q5: [Beginner troubleshooting question - like "문제가 생기면 어떻게 하나요?", "도움이 필요하면 어디서 받을 수 있나요?"]</strong></dt>
-<dd>[Provide simple solutions and helpful resources. Use encouraging, supportive tone]</dd>
-</dl>
+<p><strong>Q2: [Practical question beginners would ask - like "어떻게 시작하나요?", "비용이 얼마인가요?", "어디서 사용할 수 있나요?"]</strong></p>
 
-<div class="tags">
-<h3>추천 태그</h3>
-<p>#${keyword} #코딩 #개발도구 #프로그래밍 #개발팁</p>
-</div>
+<p>A2: [Answer with practical, actionable information in simple terms. Focus on "어떻게", "얼마나", "어디서" in everyday language. This should be 2-3 sentences.]</p>
+
+<p><strong>Q3: [Common beginner concern - like "어렵지 않나요?", "무료로 사용할 수 있나요?", "어떤 장점이 있나요?"]</strong></p>
+
+<p>A3: [Reassure and explain benefits in simple terms. Use friendly, encouraging tone. This should be 2-3 sentences.]</p>
+
+<p><strong>Q4: [Practical usage question - like "언제 사용하면 좋나요?", "다른 것과 뭐가 다른가요?"]</strong></p>
+
+<p>A4: [Answer with practical examples and simple comparisons. Use everyday situations. This should be 2-3 sentences.]</p>
+
+<p><strong>Q5: [Beginner troubleshooting question - like "문제가 생기면 어떻게 하나요?", "도움이 필요하면 어디서 받을 수 있나요?"]</strong></p>
+
+<p>A5: [Provide simple solutions and helpful resources. Use encouraging, supportive tone. This should be 2-3 sentences.]</p>
+
+[Add more Q&A pairs as needed, up to 7 total]
+
+<hr />
+
+<p><strong>추천 태그:</strong> #${keyword} #[related-tag-1] #[related-tag-2] #[related-tag-3] #[related-tag-4] #[related-tag-5]</p>
 
 --- Quality Constraints for Beginner-Friendly Content ---
 1. **For Korean articles: Use friendly, conversational Korean like talking to a friend. For English articles: Strictly use US English.**
