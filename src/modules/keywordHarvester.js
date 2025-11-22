@@ -58,17 +58,20 @@ Select the ONE keyword that has the LOWEST semantic similarity with existing pos
 3. Readers who read existing posts would find this topic FRESH and NEW
 4. Avoid topics that overlap significantly with existing content
 
-**Similarity Levels:**
-- High Overlap (60-100): Same concept, redundant → AVOID
-- Medium Overlap (40-60): Related topic, some redundancy → AVOID  
+**Similarity Levels (RELAXED CRITERIA for more diversity):**
+- Very High Overlap (80-100): Nearly identical, redundant → AVOID
+- High Overlap (60-80): Very similar concept → AVOID if possible, but ACCEPTABLE if diverse enough
+- Medium Overlap (40-60): Related topic, some overlap → ACCEPTABLE, prefer if diverse
 - Low Overlap (20-40): Related domain, distinct focus → PREFER
 - No Overlap (0-20): Completely different → MOST PREFER
 
-**IMPORTANT:**
+**IMPORTANT (RELAXED):**
 - Return ONLY the exact keyword text from the candidate list
 - Return the SINGLE most unique keyword
 - NO explanations, NO numbers, NO additional text
-- If all candidates are too similar (>40 similarity), return "NONE"
+- If all candidates are too similar (>80 similarity), return the LEAST similar one anyway
+- Prioritize DIVERSITY over perfect uniqueness
+- It's OK to select a keyword even if it has 40-60% similarity, as long as it's different enough
 
 Selected Keyword:`;
 
@@ -76,10 +79,12 @@ Selected Keyword:`;
       const response = await result.response;
       const selectedKeyword = response.text().trim();
       
-      // "NONE" 체크
+      // "NONE" 체크 - 하지만 최소한 가장 유사도가 낮은 키워드는 선택
       if (selectedKeyword === "NONE" || selectedKeyword === "none") {
-        console.log('⚠️  Gemini AI: 모든 후보가 기존 게시글과 유사함');
-        return null;
+        console.log('⚠️  Gemini AI: 모든 후보가 기존 게시글과 유사하다고 판단');
+        console.log('🔄 유사도가 가장 낮은 키워드를 선택합니다...');
+        // 단어 기반 유사도로 가장 낮은 키워드 선택
+        return this.selectLowestSimilarityKeyword(candidateKeywords, existingTitles);
       }
       
       // 후보 목록에 있는지 확인
@@ -92,8 +97,9 @@ Selected Keyword:`;
         return foundKeyword;
       } else {
         console.warn(`⚠️  Gemini가 반환한 키워드가 후보 목록에 없음: "${selectedKeyword}"`);
-        console.log(`🔄 첫 번째 후보 키워드로 폴백: "${candidateKeywords[0]}"`);
-        return candidateKeywords[0];
+        console.log(`🔄 유사도가 가장 낮은 키워드를 선택합니다...`);
+        // 단어 기반 유사도로 가장 낮은 키워드 선택
+        return this.selectLowestSimilarityKeyword(candidateKeywords, existingTitles);
       }
       
     } catch (error) {
@@ -517,11 +523,11 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
   }
 
   /**
-   * Evergreen 키워드 수집 (AI 기반 중복 방지 - 간소화)
-   * @returns {Promise<Array<string>>} 선택된 키워드 배열 (1개)
+   * Evergreen 키워드 수집 (다양한 키워드 생성)
+   * @returns {Promise<Array<string>>} 선택된 키워드 배열 (최대 15개)
    */
   async harvestAllKeywords() {
-    console.log('🌲 Evergreen 키워드 생성 시작...');
+    console.log('🌲 다양한 키워드 생성 시작...');
 
     // 1. 블로그 최근 50개 게시글 제목 가져오기
     let recentTitles = [];
@@ -533,75 +539,105 @@ Return ONLY 30 topics, one per line, NO numbers, NO explanations.
       console.log('⚠️  BloggerPublisher 미설정. 중복 체크 없이 진행');
     }
 
-    const maxAttempts = 10;
-    let attempt = 0;
-
-    // AI에게 기존 게시글을 제외한 새로운 키워드 직접 요청
-    while (attempt < maxAttempts) {
-      attempt++;
-      console.log(`\n🔄 시도 ${attempt}/${maxAttempts}: 새로운 키워드 생성 중...`);
-
-      // IT와 Finance를 번갈아가며 요청 (IT, IT, Finance 패턴)
-      const category = (attempt % 3 === 0) ? 'Finance' : 'IT';
-      
-      // AI에게 기존 제목 핵심 키워드 제외하고 새로운 키워드 요청
-      const newKeyword = await this.generateUniqueEvergreenKeyword(category, recentTitles);
-      
-      if (newKeyword) {
-        console.log(`\n🎉 새로운 ${category} 키워드 선택 완료!`);
-        console.log(`✅ 최종 키워드: "${newKeyword}"`);
-        return [newKeyword];
-      } else {
-        console.log(`❌ ${category} 키워드 생성 실패. 재시도...`);
-      }
+    // 2. 한 번에 여러 개의 다양한 키워드 생성
+    console.log('\n🎯 다양한 IT 키워드 일괄 생성 중...');
+    const itKeywords = await this.generateMultipleKeywords('IT', recentTitles, 10);
+    
+    console.log(`✅ IT 키워드 ${itKeywords.length}개 생성 완료`);
+    
+    // 3. 생성된 키워드 중에서 사용된 키워드 제외
+    const newKeywords = await this.getNewKeywords(itKeywords);
+    
+    if (newKeywords.length > 0) {
+      console.log(`\n🎉 새로운 키워드 ${newKeywords.length}개 발견!`);
+      return newKeywords.slice(0, 15); // 최대 15개 반환
     }
 
-    console.error(`\n❌ ${maxAttempts}번 시도 후에도 적합한 키워드를 찾지 못했습니다.`);
+    // 4. 새로운 키워드가 없으면 생성된 키워드 중에서 가장 유사도가 낮은 것 선택
+    if (itKeywords.length > 0) {
+      console.log('\n⚠️  모든 키워드가 사용되었지만, 유사도가 낮은 키워드를 선택합니다...');
+      return itKeywords.slice(0, 5); // 최소 5개는 반환
+    }
+
+    console.error(`\n❌ 키워드 생성 실패`);
     return [];
   }
 
   /**
-   * Evergreen 키워드 수집 (AI 기반 중복 방지 - 최대 간소화)
-   * @returns {Promise<Array<string>>} 선택된 키워드 배열 (1개)
+   * 한 번에 여러 개의 다양한 키워드 생성
+   * @param {string} category - 'IT' 또는 'Finance'
+   * @param {Array<string>} recentTitles - 최근 게시글 제목 배열
+   * @param {number} count - 생성할 키워드 개수
+   * @returns {Promise<Array<string>>} 생성된 키워드 배열
    */
-  async harvestAllKeywords() {
-    console.log('🌲 Evergreen 키워드 생성 시작...');
-
-    // 1. 블로그 최근 50개 게시글 제목 가져오기
-    let recentTitles = [];
-    if (this.bloggerPublisher) {
-      const allTitles = await this.bloggerPublisher.getAllPostTitles();
-      recentTitles = allTitles.slice(0, 50); // 최근 50개만
-      console.log(`📋 최근 블로그 게시글 ${recentTitles.length}개 제목 가져오기 완료`);
-    } else {
-      console.log('⚠️  BloggerPublisher 미설정. 중복 체크 없이 진행');
-    }
-
-    const maxAttempts = 10;
-    let attempt = 0;
-
-    // AI에게 기존 게시글 핵심 키워드를 제외한 새로운 키워드 직접 요청
-    while (attempt < maxAttempts) {
-      attempt++;
-      console.log(`\n🔄 시도 ${attempt}/${maxAttempts}: 새로운 키워드 생성 중...`);
-
-      // IT와 Finance를 번갈아가며 요청 (IT, IT, Finance 패턴)
-      const category = (attempt % 3 === 0) ? 'Finance' : 'IT';
+  async generateMultipleKeywords(category, recentTitles, count = 10) {
+    try {
+      console.log(`🤖 AI에게 다양한 ${category} 키워드 ${count}개 요청 중...`);
       
-      // 2. AI에게 기존 제목의 핵심 키워드를 제외하고 새로운 Evergreen 키워드 요청
-      const newKeyword = await this.generateUniqueEvergreenKeyword(category, recentTitles);
-      
-      if (newKeyword) {
-        console.log(`\n🎉 새로운 ${category} 키워드 선택 완료!`);
-        console.log(`✅ 최종 키워드: "${newKeyword}"`);
-        return [newKeyword];
-      } else {
-        console.log(`❌ ${category} 키워드 생성 실패. 재시도...`);
-      }
-    }
+      const prompt = `
+You are an expert content strategist. Generate ${count} diverse and unique ${category} topics that are currently trending in real-time searches.
 
-    console.error(`\n❌ ${maxAttempts}번 시도 후에도 적합한 키워드를 찾지 못했습니다.`);
-    return [];
+**Category**: ${category === 'IT' ? 'Technology - ALL areas: AI, Software, Cloud, Security, Data, Web, Mobile, DevOps, IoT, Blockchain, Gaming, Hardware, Networking, etc.' : 'Finance - ALL areas: Personal Finance, Investment, Banking, Insurance, Real Estate, Tax, Retirement, Business, Trading, Crypto basics, etc.'}
+
+**Recent Blog Post Titles (Last 50 posts - try to avoid exact duplicates, but some similarity is acceptable):**
+${recentTitles.length > 0 ? recentTitles.slice(0, 30).map((title, i) => `${i + 1}. ${title}`).join('\n') : 'No existing posts'}
+
+**Task:**
+1. Generate ${count} diverse topics covering DIFFERENT subtopics within ${category}
+2. Focus on topics that are CURRENTLY trending in real-time searches
+3. Topics should be beginner-friendly and accessible to general public
+4. Each topic should be specific and actionable
+5. Length: 15-100 characters per topic
+6. Language: ENGLISH only
+7. Prioritize variety - cover different areas, tools, concepts, and use cases
+
+**IMPORTANT for Diversity:**
+- Generate topics from DIFFERENT subtopics (don't repeat the same area)
+- Mix different difficulty levels (beginner, intermediate)
+- Include both tools/services and concepts/theories
+- Cover both practical "how-to" and explanatory "what-is" topics
+- Some similarity with existing posts is ACCEPTABLE if the topic is different enough
+
+**Return Format:**
+Return ONLY the topics, one per line, NO numbers, NO explanations, NO formatting.
+Example:
+Topic 1
+Topic 2
+Topic 3
+...
+
+${count} Diverse Topics:`;
+
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text().trim();
+      
+      // 여러 줄에서 키워드 추출
+      const keywords = text
+        .split('\n')
+        .map(line => {
+          // 번호 제거 (1., 2., - 등)
+          let cleaned = line.replace(/^\d+[\.\)]\s*/, '').trim();
+          cleaned = cleaned.replace(/^[-•]\s*/, '').trim();
+          // 따옴표 제거
+          cleaned = cleaned.replace(/^["'](.+)["']$/, '$1').trim();
+          return cleaned;
+        })
+        .filter(keyword => 
+          keyword.length >= 10 && 
+          keyword.length <= 150 && 
+          keyword.toLowerCase() !== 'none' &&
+          keyword.length > 0
+        )
+        .slice(0, count);
+      
+      console.log(`  ✅ ${keywords.length}개 키워드 추출 완료`);
+      return keywords;
+      
+    } catch (error) {
+      console.error(`${category} 키워드 생성 실패:`, error.message);
+      return [];
+    }
   }
 
   /**

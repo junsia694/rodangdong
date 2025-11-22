@@ -207,30 +207,51 @@ The output must strictly follow the required Tistory blog format structure below
 `;
 
 /**
- * 키워드 수집을 위한 프롬프트 템플릿 (실시간 검색어 상위 노출 기반)
+ * 키워드 수집을 위한 프롬프트 템플릿 (실시간 검색어 상위 노출 기반 - 다양성 강화)
  */
 export const generateKeywordPrompt = () => `
 You are a digital marketing expert specializing in IT trends across all fields.
-Your task is to suggest 15 high-potential keywords that are CURRENTLY trending in real-time search rankings and have:
+Your task is to suggest 30 DIVERSE high-potential keywords that are CURRENTLY trending in real-time search rankings.
+
+**Requirements:**
 1. High search volume and trending status (currently ranking high in real-time searches)
 2. High commercial intent (buying/solution-seeking keywords)
 3. Low to medium competition
-4. Relevance to CURRENT IT trends across all fields (AI, software, cloud, security, data, web, mobile, DevOps, IoT, blockchain, etc.)
+4. MAXIMUM DIVERSITY - cover different IT areas, tools, concepts, and use cases
+5. Beginner-friendly topics that general public can understand
 
-Focus on keywords that are CURRENTLY appearing in TOP real-time search rankings across ALL IT fields:
-- AI Services: AI tools, AI services, machine learning tools, AI platforms
-- Software & Development: development tools, programming tools, software solutions
-- Cloud & Infrastructure: cloud services, cloud platforms, infrastructure solutions
-- Security: cybersecurity tools, security solutions, data protection
-- Data & Analytics: data tools, analytics platforms, database solutions
-- Web & Mobile: web development tools, mobile app tools, web services
-- DevOps & Automation: automation tools, DevOps platforms, CI/CD tools
-- Emerging Tech: quantum computing, edge computing, 5G, AR/VR, IoT
-- IT Services: SaaS platforms, enterprise software, IT solutions
-- Technology Trends: latest IT trends, tech innovations, digital transformation
+**CRITICAL - DIVERSITY REQUIREMENT:**
+Generate keywords from MANY DIFFERENT IT areas to ensure variety:
+- AI & Machine Learning: AI tools, AI services, machine learning platforms, AI assistants
+- Software & Development: programming tools, development environments, code editors, software solutions
+- Cloud & Infrastructure: cloud services, cloud platforms, serverless, infrastructure tools
+- Security & Privacy: cybersecurity tools, security solutions, data protection, encryption tools
+- Data & Analytics: data tools, analytics platforms, database solutions, BI tools
+- Web Development: web frameworks, web tools, frontend/backend tools, web services
+- Mobile Development: mobile app tools, cross-platform tools, mobile frameworks
+- DevOps & Automation: automation tools, CI/CD platforms, monitoring tools, deployment tools
+- IoT & Hardware: IoT platforms, smart devices, hardware tools, embedded systems
+- Blockchain & Crypto: blockchain tools, crypto wallets, DeFi platforms (educational only)
+- Gaming: game development tools, game engines, gaming platforms
+- Networking: network tools, VPN services, CDN services, network monitoring
+- Productivity: productivity tools, collaboration tools, project management tools
+- Design & Creative: design tools, UI/UX tools, creative software
+- Emerging Tech: quantum computing basics, edge computing, 5G, AR/VR tools, metaverse basics
 
-IMPORTANT: Prioritize keywords that are CURRENTLY trending in real-time search rankings and likely to appear in top search results.
+**Diversity Strategy:**
+- Mix different difficulty levels (beginner, intermediate)
+- Include both tools/services and concepts/theories
+- Cover both practical "how-to" and explanatory "what-is" topics
+- Vary the topics across different IT domains
+- Some overlap is ACCEPTABLE if topics are different enough
+
+**IMPORTANT:**
+- Prioritize keywords that are CURRENTLY trending in real-time search rankings
+- Focus on beginner-friendly topics that general public can understand
+- Return 30 keywords to maximize diversity
+- Each keyword should be 2-6 words long
+- Keywords should reflect CURRENTLY TRENDING IT topics
 
 Return only the keywords as a JSON array, like: ["keyword1", "keyword2", "keyword3", ...]
-Make sure each keyword is 2-6 words long and reflects CURRENTLY TRENDING IT topics that are ranking high in real-time searches.
+Make sure to return EXACTLY 30 keywords covering diverse IT areas.
 `;
