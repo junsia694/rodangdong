@@ -17,6 +17,9 @@ ${language === 'ko' ? `
 - DO NOT mix Korean and English sentences
 - Section titles must be in Korean
 - All content, including examples and explanations, must be in Korean
+- Use simple, easy-to-understand words for general readers
+- Avoid time-limited expressions like "2025년 완벽정리" - use "완벽정리" instead
+- Make content timeless and always appear current
 ` : ''}
 
 **Adapt your expertise based on the topic:**
@@ -43,70 +46,141 @@ Focus on these topic areas:
 - Performance Optimization
 - Developer Experience (DX)
 
-The output must strictly follow the required Markdown structure below. Maintain a professional, objective, and authoritative tone (E-E-A-T principle). The content must be 100% original and provide deep, verifiable insights.
+The output must strictly follow the required Tistory blog format structure below. Maintain a professional, objective, and authoritative tone (E-E-A-T principle). The content must be 100% original and provide deep, verifiable insights.
 
---- Required Article Structure ---
+**CRITICAL OUTPUT FORMAT REQUIREMENTS:**
+1. Output must be in HTML format ready for Tistory HTML editor (body content only, no DOCTYPE or html/head tags)
+2. Word count: 1000-2000 words (strictly within this range)
+3. Use SEO-optimized title (separate from H1 tag)
+4. Title and H1 tag must be DIFFERENT
+5. Include table of contents (목차)
+6. Include "같이보면 좋은 글" section with 5 related article links from https://rodangdong.tistory.com
+7. Include 3 additional internal links naturally embedded in the content
+8. Minimum 2 images with proper alt attributes and descriptions
+9. If official website exists, use official logo and example images from official site
+10. If no official site, search for appropriate thumbnail images from web
+11. NEVER use placeholder images or descriptive text instead of images
+12. Include FAQ section with 5-7 common questions
+13. Use keyword-rich subheadings (H2, H3 tags)
+14. Include 5 recommended tags at the end
+15. Include official website link if available
+16. Use clear layout separation and design elements suitable for general readers
 
-# [Write an engaging, specific title that captures the unique essence of ${keyword} - be creative and avoid generic templates]
+--- Required Tistory Article Structure (HTML Format) ---
 
-## [Create a natural section title for introducing ${keyword} - make it contextual and engaging, not templated like "Understanding X"]
+<h1>[Write an engaging H1 title that captures the unique essence of ${keyword} - this is DIFFERENT from the SEO title]</h1>
 
-[Hook the reader with current relevance. Define **${keyword}** and its current significance. State the article's core value proposition for developers.]
+<div class="related-articles">
+<h2>같이보면 좋은 글</h2>
+<ul>
+<li><a href="https://rodangdong.tistory.com/[random-article-1]" target="_blank">[Related Article Title 1]</a></li>
+<li><a href="https://rodangdong.tistory.com/[random-article-2]" target="_blank">[Related Article Title 2]</a></li>
+<li><a href="https://rodangdong.tistory.com/[random-article-3]" target="_blank">[Related Article Title 3]</a></li>
+<li><a href="https://rodangdong.tistory.com/[random-article-4]" target="_blank">[Related Article Title 4]</a></li>
+<li><a href="https://rodangdong.tistory.com/[random-article-5]" target="_blank">[Related Article Title 5]</a></li>
+</ul>
+</div>
 
-## [Create a compelling section title about getting started with ${keyword} - make it practical and beginner-friendly]
+<div class="table-of-contents">
+<h2>목차</h2>
+<ol>
+<li><a href="#section1">[Section 1 Title]</a></li>
+<li><a href="#section2">[Section 2 Title]</a></li>
+<li><a href="#section3">[Section 3 Title]</a></li>
+<li><a href="#section4">[Section 4 Title]</a></li>
+<li><a href="#section5">[Section 5 Title]</a></li>
+<li><a href="#faq">자주 묻는 질문 (FAQ)</a></li>
+</ol>
+</div>
 
-[Provide step-by-step guidance for beginners. Include practical examples and clear instructions on how to start using ${keyword}.]
+<div class="official-site-link">
+[If official website exists, include:]
+<p><strong>공식 사이트:</strong> <a href="[official-website-url]" target="_blank">[Official Website Name] 바로가기</a></p>
+</div>
 
-## [Create an interesting section title about ${keyword} tools and resources - make it specific and actionable]
+<h2 id="section1">[Create a natural section title with keywords for introducing ${keyword} - make it contextual and engaging]</h2>
 
-[Introduce essential tools, plugins, and resources. Provide specific recommendations with installation guides and usage examples.]
+<p>[Hook the reader with current relevance. Define **${keyword}** and its current significance. State the article's core value proposition. Include natural internal link to related article from https://rodangdong.tistory.com]</p>
 
-## [Create a practical section title about ${keyword} examples and use cases - make it hands-on]
+<img src="[official-site-logo-url OR web-searched-image-url]" alt="[Detailed ALT text describing the image, max 125 chars]" />
+<p class="image-caption">[Image description explaining what the image shows]</p>
 
-[Discuss real-world applications with concrete examples:
+<h2 id="section2">[Create a keyword-rich section title about getting started with ${keyword} - make it practical and beginner-friendly]</h2>
+
+<p>[Provide step-by-step guidance for beginners. Include practical examples and clear instructions. Use simple words for general readers. Include natural internal link to related article from https://rodangdong.tistory.com]</p>
+
+<h2 id="section3">[Create a keyword-rich section title about ${keyword} tools and resources - make it specific and actionable]</h2>
+
+<p>[Introduce essential tools, plugins, and resources. Provide specific recommendations with installation guides and usage examples. Include natural internal link to related article from https://rodangdong.tistory.com]</p>
+
+<img src="[official-site-example-image-url OR web-searched-image-url]" alt="[Detailed ALT text describing the image, max 125 chars]" />
+<p class="image-caption">[Image description explaining what the image shows]</p>
+
+<h2 id="section4">[Create a keyword-rich section title about ${keyword} examples and use cases - make it hands-on]</h2>
+
+<p>[Discuss real-world applications with concrete examples:
 - Code Examples
 - Practical Use Cases
 - Best Practices
-- Common Patterns]
+- Common Patterns]</p>
 
-## [Create a comparison-focused section title that's natural and specific to ${keyword}]
+<h2 id="section5">[Create a keyword-rich comparison-focused section title that's natural and specific to ${keyword}]</h2>
 
-[Compare **${keyword}** with alternative approaches or tools. Provide practical insights on when to use ${keyword} vs alternatives.]
+<p>[Compare **${keyword}** with alternative approaches or tools. Provide practical insights on when to use ${keyword} vs alternatives.]</p>
 
-## [Create a conclusion-style section title that's engaging and summarizes the value]
+<h2 id="faq">자주 묻는 질문 (FAQ)</h2>
 
-[Summarize key takeaways and provide forward-looking insights for developers.]
+<dl>
+<dt><strong>Q1: [Common question about ${keyword}]</strong></dt>
+<dd>[Detailed answer with practical information]</dd>
 
-## [Create an FAQ-style section title that's natural and inviting]
+<dt><strong>Q2: [Common question about ${keyword}]</strong></dt>
+<dd>[Detailed answer with practical information]</dd>
 
-[Address 3-5 common questions about **${keyword}** and define 5 essential technical terms used in the article.]
+<dt><strong>Q3: [Common question about ${keyword}]</strong></dt>
+<dd>[Detailed answer with practical information]</dd>
 
-## Image Placement Suggestions (2 Images Minimum - REQUIRED)
+<dt><strong>Q4: [Common question about ${keyword}]</strong></dt>
+<dd>[Detailed answer with practical information]</dd>
 
-**Image 1 Placement:** After the introduction paragraph
-**Image 1 Description (for Unsplash Search):** [A concise (max 5 words) and coding/development relevant search query for a royalty-free image, e.g., 'coding programming development']
-**Image 1 ALT Text:** [Detailed ALT text for SEO/Accessibility, max 125 chars, describing the coding concept or development environment]
+<dt><strong>Q5: [Common question about ${keyword}]</strong></dt>
+<dd>[Detailed answer with practical information]</dd>
+</dl>
 
-**Image 2 Placement:** After the tools and resources section  
-**Image 2 Description (for Unsplash Search):** [A concise (max 5 words) and development tools relevant search query, distinct from Image 1, e.g., 'software development tools']
-**Image 2 ALT Text:** [Detailed ALT text for SEO/Accessibility, max 125 chars, describing the development tools or coding workflow]
+<div class="tags">
+<h3>추천 태그</h3>
+<p>#${keyword} #코딩 #개발도구 #프로그래밍 #개발팁</p>
+</div>
 
 --- Quality Constraints ---
-1. **Strictly use US English.**
+1. **For Korean articles: Use natural Korean. For English articles: Strictly use US English.**
 2. **Ensure content is not detectable as AI-generated.**
 3. **Ensure all factual claims are accurate and verifiable.**
-4. **Do not include any headers or text outside of the sections defined above.**
-5. **Minimum word count: 1500 words.**
-6. **Focus on commercial intent keywords with high search volume.**
-7. **CRITICAL: Create unique, natural section titles that match the specific content about ${keyword}.**
-8. **DO NOT use templated section titles like "Understanding X", "What Makes X Important", "How X Works".**
-9. **Section titles should be engaging, conversational, and specific to the actual content you're writing.**
-10. **Main article title must be under 50 characters, creative, and attention-grabbing.**
+4. **Word count: STRICTLY 1000-2000 words (must be within this range).**
+5. **Focus on commercial intent keywords with high search volume.**
+6. **CRITICAL: Create unique, natural section titles with keywords that match the specific content about ${keyword}.**
+7. **DO NOT use templated section titles like "Understanding X", "What Makes X Important", "How X Works".**
+8. **Section titles should be engaging, conversational, keyword-rich, and specific to the actual content.**
+9. **SEO title (for filename) and H1 title must be DIFFERENT.**
+10. **SEO title must be under 50 characters, creative, attention-grabbing, and SEO-optimized.**
 11. **Examples of GOOD section titles for coding topics:**
    - For Vibe Coding: "바이브 코딩이란 무엇인가?", "바이브 코딩을 시작하려면?", "바이브 코딩 도구 소개"
    - For VS Code Plugins: "코딩 속도를 2배로 만드는 플러그인들", "개발자들이 꼭 설치해야 할 확장 프로그램"
    - For Git Workflow: "Git으로 협업하는 현명한 방법", "브랜치 전략이 프로젝트를 좌우한다"
-12. **Be conversational, engaging, and avoid academic or robotic phrasing. Focus on practical, actionable content for developers.**
+12. **Be conversational, engaging, and avoid academic or robotic phrasing. Focus on practical, actionable content.**
+13. **Use simple, easy-to-understand words suitable for general readers (not just developers).**
+14. **Include clear layout separation and design elements in HTML.**
+15. **Images: Minimum 2 images required. Use official site images if available, otherwise search for appropriate web images.**
+16. **NEVER use placeholder images or descriptive text instead of actual images.**
+17. **All images must have proper alt attributes and captions.**
+18. **Include 5 related article links in "같이보면 좋은 글" section.**
+19. **Include 3 additional internal links naturally embedded in content.**
+20. **Include table of contents (목차) with anchor links.**
+21. **Include FAQ section with 5-7 common questions.**
+22. **Include 5 recommended tags at the end.**
+23. **Include official website link if available.**
+24. **AVOID time-limited expressions like "2025년 완벽정리" - use "완벽정리" instead.**
+25. **Make content timeless and always appear current.**
 `;
 
 /**
