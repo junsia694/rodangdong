@@ -43,67 +43,35 @@ class GitHubActionsBlog {
       
       console.log(`✅ 선택된 키워드: "${newKeyword}"`);
       
-      // 2단계: 콘텐츠 생성
-      console.log('\n📝 2단계: 블로그 콘텐츠 생성 중...');
-      const article = await this.contentGenerator.generateArticle(newKeyword);
+      // 2단계: 한국어 콘텐츠 생성
+      console.log('\n📝 2단계: 한국어 블로그 콘텐츠 생성 중...');
+      const article = await this.contentGenerator.generateArticle(newKeyword, 'ko');
       
       // 품질 리포트
       const qualityReport = this.contentGenerator.generateQualityReport(article);
-      console.log(`✅ 콘텐츠 생성 완료`);
+      console.log(`✅ 한국어 콘텐츠 생성 완료`);
       console.log(`   - 제목: ${article.title}`);
       console.log(`   - 단어 수: ${qualityReport.wordCount}개`);
       console.log(`   - 이미지 수: ${qualityReport.imageCount}개`);
       console.log(`   - 품질 점수: ${qualityReport.qualityScore}/100`);
       
-      // 3단계: 영어 Blogger 예약 게시 (24시간 후)
-      console.log('\n📤 3단계: 영어 버전 Blogger 예약 게시 중 (24시간 후)...');
-      const publishedPost = await this.bloggerPublisher.publishPost(article, false, 24); // 24시간 후 예약 게시
-      
-      console.log(`✅ 영어 버전 24시간 후 예약 게시 완료`);
-      console.log(`   - Post ID: ${publishedPost.postId}`);
-      console.log(`   - 게시 URL: ${publishedPost.url}`);
-      
-      // 4단계: 한국어 콘텐츠 생성
-      console.log('\n🇰🇷 4단계: 한국어 콘텐츠 생성 중...');
-      const koreanMarkdown = await this.contentGenerator.translateToKorean(article.markdownContent);
-      const koreanTitle = await this.contentGenerator.translateToKorean(article.title);
-      
-      // 한국어 HTML 변환 (영어 버전의 이미지 URL 재사용)
-      const koreanImageInfo = article.imageInfo;
-      const koreanImageUrls = article.imageUrls;  // 영어 버전의 이미지 URL 재사용
-      const koreanHtmlContent = await this.contentGenerator.convertToHtml(koreanMarkdown, koreanImageInfo, koreanImageUrls);
-      
-      const koreanArticle = {
-        keyword: newKeyword,
-        title: koreanTitle,
-        metaDescription: await this.contentGenerator.translateToKorean(article.metaDescription),
-        content: koreanHtmlContent,
-        markdownContent: koreanMarkdown,
-        imageInfo: koreanImageInfo,
-        wordCount: this.contentGenerator.countWords(koreanMarkdown),
-        generatedAt: new Date().toISOString()
-      };
-      
-      console.log(`✅ 한국어 콘텐츠 생성 완료`);
-      console.log(`   - 한글 제목: ${koreanArticle.title}`);
-      
-      // 5단계: 한국어 Blogger 예약 게시 (24시간 후)
-      console.log('\n📤 5단계: 한국어 버전 Blogger 예약 게시 중 (24시간 후)...');
+      // 3단계: 한국어 Blogger 예약 게시 (24시간 후)
+      console.log('\n📤 3단계: 한국어 버전 Blogger 예약 게시 중 (24시간 후)...');
       const koreanLabels = [
         'IT Trends (KR)',
         newKeyword.toLowerCase().replace(/\s+/g, '-')
       ];
       
-      const koreanPublishedPost = await this.bloggerPublisher.publishPost(
-        koreanArticle,
+      const publishedPost = await this.bloggerPublisher.publishPost(
+        article,
         false,  // 예약 게시
         24,     // 24시간 후 게시
         koreanLabels  // 한국어 전용 라벨
       );
       
       console.log(`✅ 한국어 버전 24시간 후 예약 게시 완료`);
-      console.log(`   - Post ID: ${koreanPublishedPost.postId}`);
-      console.log(`   - 게시 URL: ${koreanPublishedPost.url}`);
+      console.log(`   - Post ID: ${publishedPost.postId}`);
+      console.log(`   - 게시 URL: ${publishedPost.url}`);
       
       // 6단계: 키워드 저장
       console.log('\n💾 6단계: 키워드 저장 중...');
@@ -116,12 +84,9 @@ class GitHubActionsBlog {
       console.log('🎉 블로그 자동화 완료!');
       console.log('━'.repeat(60));
       console.log(`📝 키워드: ${newKeyword}`);
-      console.log(`\n🇺🇸 영어 버전:`);
+      console.log(`\n🇰🇷 한국어 버전:`);
       console.log(`   - Post ID: ${publishedPost.postId}`);
       console.log(`   - URL: ${publishedPost.url}`);
-      console.log(`\n🇰🇷 한국어 버전:`);
-      console.log(`   - Post ID: ${koreanPublishedPost.postId}`);
-      console.log(`   - URL: ${koreanPublishedPost.url}`);
       console.log(`\n📈 품질 점수: ${qualityReport.qualityScore}/100`);
       console.log(`📏 단어 수: ${qualityReport.wordCount}개`);
       console.log(`🖼️  이미지 수: ${qualityReport.imageCount}개`);
@@ -131,10 +96,8 @@ class GitHubActionsBlog {
       if (process.env.GITHUB_OUTPUT) {
         const output = [
           `keyword=${newKeyword}`,
-          `english_post_id=${publishedPost.postId}`,
-          `english_url=${publishedPost.url}`,
-          `korean_post_id=${koreanPublishedPost.postId}`,
-          `korean_url=${koreanPublishedPost.url}`,
+          `post_id=${publishedPost.postId}`,
+          `url=${publishedPost.url}`,
           `quality_score=${qualityReport.qualityScore}`
         ].join('\n');
         

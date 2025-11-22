@@ -5,8 +5,19 @@
  */
 
 export const generateArticlePrompt = (keyword, language = 'en') => `
-You are an expert developer and professional SEO writer specializing in coding and development topics.
+You are an expert IT professional and professional SEO writer specializing in IT topics across all fields.
 Your task is to write a comprehensive, accurate, and highly engaging ${language === 'ko' ? 'KOREAN' : 'English'} article about **${keyword}**.
+
+**CRITICAL DESIGN REFERENCE:**
+You MUST follow the exact design and content structure from this reference page: https://rodangdong.tistory.com/174
+Study the design elements, layout, formatting, and content organization from this page and replicate it as closely as possible:
+- Title format: "[Catchy phrase] | [Main Topic] 완벽 가이드"
+- "📌 같이 보면 좋은 글" section with 5 links using ▸ symbol
+- "📑 목차" section with numbered list
+- Section structure and formatting style
+- Image placement and caption style
+- FAQ section format
+- Overall visual hierarchy and spacing
 
 ${language === 'ko' ? `
 **IMPORTANT - KOREAN LANGUAGE REQUIREMENTS:**
@@ -22,29 +33,31 @@ ${language === 'ko' ? `
 - Make content timeless and always appear current
 ` : ''}
 
-**Adapt your expertise based on the topic:**
-- Coding/Development: Software development expert and coding instructor
-- Programming Tools: Developer tools and IDE specialist
-- Web Development: Frontend/Backend development expert
-- Mobile Development: Mobile app development specialist
-- DevOps/Tools: Development workflow and automation expert
+**Adapt your expertise based on the topic (IT Full Range):**
+- AI & Machine Learning: AI services, machine learning, deep learning, AI tools
+- Software Development: Programming languages, frameworks, development tools
+- Cloud Computing: AWS, Azure, GCP, cloud services, serverless
+- Cybersecurity: Security tools, encryption, network security, data protection
+- Data Science: Big data, analytics, data visualization, databases
+- Web Development: Frontend, backend, full-stack, web frameworks
+- Mobile Development: iOS, Android, mobile apps, cross-platform
+- DevOps: CI/CD, containerization, orchestration, infrastructure
+- IoT & Hardware: Internet of Things, embedded systems, hardware
+- Blockchain: Cryptocurrency, smart contracts, DeFi, blockchain technology
+- IT Services: SaaS, PaaS, IaaS, enterprise software
+- Emerging Technologies: Quantum computing, AR/VR, edge computing, 5G
 
-Focus on these topic areas:
-**Coding & Development:**
-- Programming Languages and Frameworks
-- Development Tools and IDEs
-- Code Editors and Extensions
-- Version Control and Git
-- Testing and Debugging
-- Code Quality and Best Practices
-
-**Developer Productivity:**
-- Coding Plugins and Extensions
-- Automation Tools
-- Development Workflows
-- Code Generation Tools
-- Performance Optimization
-- Developer Experience (DX)
+Focus on ALL IT topic areas including:
+- AI Services and Tools
+- Software and Application Development
+- Cloud and Infrastructure
+- Security and Privacy
+- Data Management and Analytics
+- Web and Mobile Technologies
+- DevOps and Automation
+- Emerging IT Trends
+- IT Tools and Services
+- Technology Solutions
 
 The output must strictly follow the required Tistory blog format structure below. Maintain a professional, objective, and authoritative tone (E-E-A-T principle). The content must be 100% original and provide deep, verifiable insights.
 
@@ -71,18 +84,18 @@ The output must strictly follow the required Tistory blog format structure below
 <h1>[Write an engaging H1 title that captures the unique essence of ${keyword} - this is DIFFERENT from the SEO title]</h1>
 
 <div class="related-articles">
-<h2>같이보면 좋은 글</h2>
+<h2>📌 같이 보면 좋은 글</h2>
 <ul>
-<li><a href="https://rodangdong.tistory.com/[random-article-1]" target="_blank">[Related Article Title 1]</a></li>
-<li><a href="https://rodangdong.tistory.com/[random-article-2]" target="_blank">[Related Article Title 2]</a></li>
-<li><a href="https://rodangdong.tistory.com/[random-article-3]" target="_blank">[Related Article Title 3]</a></li>
-<li><a href="https://rodangdong.tistory.com/[random-article-4]" target="_blank">[Related Article Title 4]</a></li>
-<li><a href="https://rodangdong.tistory.com/[random-article-5]" target="_blank">[Related Article Title 5]</a></li>
+<li>▸ <a href="https://rodangdong.tistory.com/[random-article-1]" target="_blank">[Related Article Title 1]</a></li>
+<li>▸ <a href="https://rodangdong.tistory.com/[random-article-2]" target="_blank">[Related Article Title 2]</a></li>
+<li>▸ <a href="https://rodangdong.tistory.com/[random-article-3]" target="_blank">[Related Article Title 3]</a></li>
+<li>▸ <a href="https://rodangdong.tistory.com/[random-article-4]" target="_blank">[Related Article Title 4]</a></li>
+<li>▸ <a href="https://rodangdong.tistory.com/[random-article-5]" target="_blank">[Related Article Title 5]</a></li>
 </ul>
 </div>
 
 <div class="table-of-contents">
-<h2>목차</h2>
+<h2>📑 목차</h2>
 <ol>
 <li><a href="#section1">[Section 1 Title]</a></li>
 <li><a href="#section2">[Section 2 Title]</a></li>
@@ -184,33 +197,30 @@ The output must strictly follow the required Tistory blog format structure below
 `;
 
 /**
- * 키워드 수집을 위한 프롬프트 템플릿 (실시간 트렌드 기반)
+ * 키워드 수집을 위한 프롬프트 템플릿 (실시간 검색어 상위 노출 기반)
  */
 export const generateKeywordPrompt = () => `
-You are a digital marketing expert specializing in coding and development trends.
-Your task is to suggest 15 high-potential keywords related to CURRENT and EMERGING coding/development trends for 2025 that have:
-1. High commercial intent (buying/solution-seeking keywords)
-2. Good search volume potential
+You are a digital marketing expert specializing in IT trends across all fields.
+Your task is to suggest 15 high-potential keywords that are CURRENTLY trending in real-time search rankings and have:
+1. High search volume and trending status (currently ranking high in real-time searches)
+2. High commercial intent (buying/solution-seeking keywords)
 3. Low to medium competition
-4. Relevance to LATEST 2025 coding trends and breaking news
+4. Relevance to CURRENT IT trends across all fields (AI, software, cloud, security, data, web, mobile, DevOps, IoT, blockchain, etc.)
 
-Focus on CURRENT TRENDING topics like:
-- "vibe coding 2025"
-- "AI coding assistants"
-- "VS Code extensions"
-- "GitHub Copilot alternatives"
-- "coding productivity tools"
-- "developer workflow automation"
-- "code generation tools"
-- "programming language trends"
-- "web development frameworks"
-- "mobile app development"
-- "DevOps tools"
-- "code quality tools"
-- "testing automation"
-- "API development"
-- "cloud development"
+Focus on keywords that are CURRENTLY appearing in TOP real-time search rankings across ALL IT fields:
+- AI Services: AI tools, AI services, machine learning tools, AI platforms
+- Software & Development: development tools, programming tools, software solutions
+- Cloud & Infrastructure: cloud services, cloud platforms, infrastructure solutions
+- Security: cybersecurity tools, security solutions, data protection
+- Data & Analytics: data tools, analytics platforms, database solutions
+- Web & Mobile: web development tools, mobile app tools, web services
+- DevOps & Automation: automation tools, DevOps platforms, CI/CD tools
+- Emerging Tech: quantum computing, edge computing, 5G, AR/VR, IoT
+- IT Services: SaaS platforms, enterprise software, IT solutions
+- Technology Trends: latest IT trends, tech innovations, digital transformation
+
+IMPORTANT: Prioritize keywords that are CURRENTLY trending in real-time search rankings and likely to appear in top search results.
 
 Return only the keywords as a JSON array, like: ["keyword1", "keyword2", "keyword3", ...]
-Make sure each keyword is 2-6 words long and reflects the MOST CURRENT coding and development trends for 2025.
+Make sure each keyword is 2-6 words long and reflects CURRENTLY TRENDING IT topics that are ranking high in real-time searches.
 `;

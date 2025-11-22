@@ -53,9 +53,9 @@ class BlogAutomationApp {
     try {
       console.log(`\n🔄 Processing keyword: "${keyword}"`);
       
-      // 1. 영어 콘텐츠 생성
-      console.log('📝 Generating English content...');
-      const article = await this.contentGenerator.generateArticle(keyword, 'en');
+      // 1. 한국어 콘텐츠 생성 (영문 버전 제거)
+      console.log('📝 Generating Korean content...');
+      const article = await this.contentGenerator.generateArticle(keyword, 'ko');
       
       // 2. 품질 리포트 생성
       const qualityReport = this.contentGenerator.generateQualityReport(article);
@@ -63,65 +63,30 @@ class BlogAutomationApp {
       console.log(`📏 Word Count: ${qualityReport.wordCount}`);
       console.log(`🖼️  Images: ${qualityReport.imageCount}`);
       
-      // 3. Blogger에 영어 버전 발행 (24시간 후 예약 게시)
-      console.log('📤 Publishing English version to Blogger (scheduled in 24 hours)...');
-      const publishResult = await this.bloggerPublisher.publishPost(
-        article, 
-        false, 
-        24  // 24시간 후 게시
-      );
-      
-      if (publishResult.success) {
-        console.log(`✅ English version scheduled for 24 hours later: ${publishResult.url}`);
-      }
-      
-      // 4. 한국어 콘텐츠 생성
-      console.log('\n🇰🇷 Generating Korean content...');
-      const koreanMarkdown = await this.contentGenerator.translateToKorean(article.markdownContent);
-      const koreanTitle = await this.contentGenerator.translateToKorean(article.title);
-      
-      // 한국어 HTML 변환 (영어 버전의 이미지 URL 재사용)
-      const koreanImageInfo = article.imageInfo;
-      const koreanImageUrls = article.imageUrls;  // 영어 버전의 이미지 URL 재사용
-      const koreanHtmlContent = await this.contentGenerator.convertToHtml(koreanMarkdown, koreanImageInfo, koreanImageUrls);
-      
-      const koreanArticle = {
-        keyword: keyword,
-        title: koreanTitle,
-        metaDescription: await this.contentGenerator.translateToKorean(article.metaDescription),
-        content: koreanHtmlContent,
-        markdownContent: koreanMarkdown,
-        imageInfo: koreanImageInfo,
-        wordCount: this.contentGenerator.countWords(koreanMarkdown),
-        generatedAt: new Date().toISOString()
-      };
-      
-      // 5. Blogger에 한국어 버전 발행 (24시간 후 예약 게시)
+      // 3. Blogger에 한국어 버전 발행 (24시간 후 예약 게시)
       console.log('📤 Publishing Korean version to Blogger (scheduled in 24 hours)...');
       const koreanLabels = [
         'IT Trends (KR)',
         keyword.toLowerCase().replace(/\s+/g, '-')
       ];
       
-      const koreanPublishResult = await this.bloggerPublisher.publishPost(
-        koreanArticle, 
+      const publishResult = await this.bloggerPublisher.publishPost(
+        article, 
         false,  // 예약 게시
         24,     // 24시간 후 게시
         koreanLabels  // 한국어 전용 라벨
       );
       
-      if (koreanPublishResult.success) {
-        console.log(`✅ Korean version scheduled for 24 hours later: ${koreanPublishResult.url}`);
+      if (publishResult.success) {
+        console.log(`✅ Korean version scheduled for 24 hours later: ${publishResult.url}`);
       }
       
       return {
         success: true,
         keyword,
         article,
-        koreanArticle,
         qualityReport,
-        publishResult,
-        koreanPublishResult
+        publishResult
       };
       
     } catch (error) {
