@@ -32,7 +32,7 @@ export const config = {
   app: {
     nodeEnv: process.env.NODE_ENV || 'development',
     logLevel: process.env.LOG_LEVEL || 'info',
-    minWordCount: parseInt(process.env.MIN_WORD_COUNT) || 1500,
+    minWordCount: parseInt(process.env.MIN_WORD_COUNT) || 1200,
     minImagesCount: parseInt(process.env.MIN_IMAGES_COUNT) || 2
   },
 
