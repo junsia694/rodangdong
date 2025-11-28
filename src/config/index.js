@@ -11,7 +11,7 @@ export const config = {
   // Gemini API Configuration
   gemini: {
     apiKey: process.env.GEMINI_API_KEY || 'AIzaSyCDqXoE3jbTKQlnSUHJ17Z_orNctN0edVA',
-    model: 'gemini-2.5-flash'
+    model: 'gemini-3.0-flash'
   },
 
   // Blogger API Configuration
