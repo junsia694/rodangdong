@@ -4,6 +4,7 @@ import { config } from '../config/index.js';
 import axios from 'axios';
 import MarkdownIt from 'markdown-it';
 import ImageSearcher from './imageSearcher.js';
+import GosaCollector from './gosaCollector.js';
 
 /**
  * AI 콘텐츠 생성 모듈
@@ -21,6 +22,7 @@ class ContentGenerator {
       typographer: true
     });
     this.imageSearcher = new ImageSearcher();
+    this.gosaCollector = new GosaCollector();
   }
 
   /**
@@ -76,8 +78,18 @@ Korean translation (clean content only):
     try {
       console.log(`Generating article for keyword: ${keyword} (${language.toUpperCase()})`);
       
+      // 고사성어 게시글 목록 가져오기 (같이 보면 좋은 글용)
+      let relatedArticles = [];
+      try {
+        const allArticles = await this.gosaCollector.getGosaArticles();
+        relatedArticles = this.gosaCollector.getRandomArticles(allArticles, keyword);
+        console.log(`📚 관련 게시글 ${relatedArticles.length}개 선택 완료`);
+      } catch (error) {
+        console.warn('관련 게시글 수집 실패, 기본값 사용:', error.message);
+      }
+      
       // 프롬프트 생성
-      const prompt = generateArticlePrompt(keyword, language);
+      const prompt = generateArticlePrompt(keyword, language, relatedArticles);
       
       // Gemini API 호출
       const result = await this.model.generateContent(prompt);
@@ -100,7 +112,12 @@ Korean translation (clean content only):
       const seoData = this.extractSEOMetadata(markdownContent);
 
       // HTML 변환 (이미 가져온 imageUrls 전달)
-      const htmlContent = await this.convertToHtml(markdownContent, imageInfo, imageUrls);
+      let htmlContent = await this.convertToHtml(markdownContent, imageInfo, imageUrls);
+      
+      // "같이 보면 좋은 글" 섹션에 실제 게시글 링크 치환
+      if (relatedArticles.length >= 5) {
+        htmlContent = this.replaceRelatedArticles(htmlContent, relatedArticles);
+      }
 
       return {
         keyword,
@@ -1105,6 +1122,41 @@ Generate only the search term:
       .replace(/[#*\[\]()]/g, '') // 마크다운 문법 제거
       .split(/\s+/)
       .filter(word => word.length > 0).length;
+  }
+
+  /**
+   * "같이 보면 좋은 글" 섹션에 실제 게시글 링크 치환
+   * @param {string} htmlContent - HTML 콘텐츠
+   * @param {Array<{title: string, url: string}>} relatedArticles - 관련 게시글 목록
+   * @returns {string} 치환된 HTML 콘텐츠
+   */
+  replaceRelatedArticles(htmlContent, relatedArticles) {
+    try {
+      // "같이 보면 좋은 글" 섹션 찾기
+      const relatedSectionPattern = /<h3>📚 같이 보면 좋은 글<\/h3>\s*<ul>[\s\S]*?<\/ul>/i;
+      
+      if (!relatedSectionPattern.test(htmlContent)) {
+        return htmlContent;
+      }
+      
+      // 실제 게시글 링크로 치환
+      const relatedLinks = relatedArticles.slice(0, 5).map(article => 
+        `<li>▸ <a href="${article.url}" target="_blank">${article.title}</a></li>`
+      ).join('\n');
+      
+      const newSection = `<h3>📚 같이 보면 좋은 글</h3>
+
+<ul>
+${relatedLinks}
+</ul>`;
+      
+      htmlContent = htmlContent.replace(relatedSectionPattern, newSection);
+      
+      return htmlContent;
+    } catch (error) {
+      console.warn('관련 게시글 링크 치환 실패:', error.message);
+      return htmlContent;
+    }
   }
 
   /**

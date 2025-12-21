@@ -4,6 +4,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { config } from '../config/index.js';
 import FileDatabase from './fileDb.js';
 import TrendKeywordCollector from './trendKeywordCollector.js';
+import GosaCollector from './gosaCollector.js';
 
 /**
  * 키워드 수집 모듈
@@ -17,6 +18,7 @@ class KeywordHarvester {
     this.model = this.genAI.getGenerativeModel({ model: config.gemini.model });
     this.db = new FileDatabase();
     this.trendCollector = new TrendKeywordCollector();
+    this.gosaCollector = new GosaCollector();
     this.bloggerPublisher = null; // 필요시 주입
   }
 
@@ -904,25 +906,72 @@ New Evergreen Topic:`;
    */
   async harvestAndSaveKeywords() {
     try {
-      // 모든 소스에서 키워드 수집
-      const allKeywords = await this.harvestAllKeywords();
+      // 고사성어 카테고리에서 기존 목록 수집
+      const usedGosaList = await this.gosaCollector.getUsedGosaList();
+      console.log(`📚 기존 고사성어 ${usedGosaList.length}개 확인 완료`);
       
-      // 새로운 키워드만 필터링
-      const newKeywords = await this.getNewKeywords(allKeywords);
+      // 새로운 고사성어 생성 (기존 목록 제외)
+      const newGosa = await this.generateNewGosa(usedGosaList);
       
-      // 상위 5개 키워드만 저장 (비용 절약)
-      const selectedKeywords = newKeywords.slice(0, 5);
-      
-      // 선택된 키워드들을 데이터베이스에 저장
-      for (const keyword of selectedKeywords) {
-        await this.db.saveUsedKeyword(keyword);
+      if (!newGosa) {
+        console.log('⚠️  새로운 고사성어를 찾을 수 없습니다.');
+        return [];
       }
-
-      console.log(`Successfully harvested and saved ${selectedKeywords.length} new keywords`);
-      return selectedKeywords;
+      
+      console.log(`✅ 선택된 고사성어: ${newGosa}`);
+      
+      // 선택된 고사성어를 데이터베이스에 저장
+      await this.db.saveUsedKeyword(newGosa);
+      
+      console.log(`Successfully harvested and saved new 고사성어: ${newGosa}`);
+      return [newGosa];
     } catch (error) {
       console.error('Failed to harvest and save keywords:', error);
       return [];
+    }
+  }
+
+  /**
+   * 새로운 고사성어 생성 (AI 사용)
+   * @param {Array<string>} usedGosaList - 사용된 고사성어 목록
+   * @returns {Promise<string|null>} 새로운 고사성어
+   */
+  async generateNewGosa(usedGosaList) {
+    try {
+      console.log('🤖 AI로 새로운 고사성어 생성 중...');
+      
+      const prompt = generateKeywordPrompt(usedGosaList);
+      
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text().trim();
+      
+      // JSON 배열 파싱 시도
+      let gosaList = [];
+      try {
+        gosaList = JSON.parse(text);
+      } catch {
+        // JSON이 아니면 줄 단위로 파싱
+        gosaList = text
+          .split('\n')
+          .map(line => line.trim().replace(/^["']|["']$/g, '').replace(/^[-•\d+\.\)]\s*/, ''))
+          .filter(line => line.length >= 2 && line.length <= 4 && /^[가-힣]+$/.test(line));
+      }
+      
+      // 사용되지 않은 고사성어 필터링
+      const availableGosa = gosaList.filter(gosa => !usedGosaList.includes(gosa));
+      
+      if (availableGosa.length === 0) {
+        console.warn('⚠️  모든 후보 고사성어가 이미 사용됨');
+        return null;
+      }
+      
+      // 첫 번째 사용 가능한 고사성어 반환
+      return availableGosa[0];
+      
+    } catch (error) {
+      console.error('고사성어 생성 실패:', error);
+      return null;
     }
   }
 }

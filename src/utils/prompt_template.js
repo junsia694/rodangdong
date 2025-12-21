@@ -4,69 +4,59 @@
  * 출력은 E-E-A-T 원칙, SEO 구조, 그리고 최소 2개의 이미지 배치 제안을 엄격히 준수
  */
 
-export const generateArticlePrompt = (keyword, language = 'en') => `
-You are a friendly IT guide and professional SEO writer who explains IT topics in a simple, easy-to-understand way for beginners and general public.
-Your task is to write a comprehensive, accurate, and highly engaging ${language === 'ko' ? 'KOREAN' : 'English'} article about **${keyword}** for people who are NOT IT experts.
+export const generateArticlePrompt = (keyword, language = 'en', relatedArticles = []) => `
+You are a professional Korean language and culture expert specializing in 고사성어 (traditional Korean/Chinese four-character idioms).
+Your task is to write a comprehensive, accurate, and highly engaging KOREAN article about the 고사성어 **${keyword}** (사자성어) following the EXACT format from this reference: https://rodangdong.tistory.com/340
 
 **TARGET AUDIENCE:**
-- General public with little to no IT background
-- IT beginners who are just starting to learn
-- People who want to understand IT concepts without technical jargon
-- Non-technical users who need practical IT solutions
+- General Korean readers interested in traditional culture and language
+- Students learning Korean language and idioms
+- People who want to understand 고사성어 in depth
+- Readers seeking practical knowledge about 사자성어
 
 **CRITICAL DESIGN REFERENCE:**
-You MUST follow the exact design and content structure from this reference page: https://rodangdong.tistory.com/174
-Study the design elements, layout, formatting, and content organization from this page and replicate it as closely as possible:
-- Title format: "[Catchy phrase] | [Main Topic] 완벽 가이드"
-- "📌 같이 보면 좋은 글" section with 5 links using ▸ symbol
-- "📑 목차" section with numbered list
-- Section structure and formatting style
-- Image placement and caption style
-- FAQ section format
-- Overall visual hierarchy and spacing
+You MUST follow the EXACT design and content structure from this reference page: https://rodangdong.tistory.com/340
+Study the design elements, layout, formatting, and content organization from this page and replicate it EXACTLY:
+- Title format: "[고사성어] 사자성어의 뜻과 유래 완벽 정리 | [descriptive subtitle]"
+- "📚 같이 보면 좋은 글" section with 5 links using ▸ symbol (NOT "📌 같이 보면 좋은 글")
+- "📌 목차" section with numbered list
+- Section structure and formatting style EXACTLY matching the reference
+- NO HTML markup characters or citation marks in content
+- NO quotation marks or citation indicators
+- Clean, natural Korean text only
 
-${language === 'ko' ? `
-**IMPORTANT - KOREAN LANGUAGE REQUIREMENTS FOR BEGINNERS:**
+**IMPORTANT - KOREAN LANGUAGE REQUIREMENTS:**
 - Write ENTIRELY in Korean (한국어)
-- Use friendly, conversational Korean like explaining to a friend
-- AVOID technical jargon and complex IT terminology
-- When technical terms are necessary, explain them in simple everyday language first
-- Use analogies and real-life examples to explain complex concepts
-- Example: Instead of "API를 통해 데이터를 전송한다" → "간단히 말해, API는 서로 다른 프로그램들이 대화할 수 있게 해주는 통역사 같은 역할을 해요"
-- DO NOT mix Korean and English sentences
-- Section titles must be in Korean and easy to understand
-- All content must be accessible to people with zero IT background
-- Use simple, everyday words that anyone can understand
-- Write as if explaining to someone who has never heard of the topic before
-- Use "~해요", "~입니다" ending for friendly tone
-- Avoid time-limited expressions like "2025년 완벽정리" - use "완벽정리" instead
+- Use clear, educational Korean suitable for explaining 고사성어
+- Explain historical context and origins naturally
+- Use proper 한자 (Chinese characters) when explaining the meaning
+- Include historical stories and background naturally
+- DO NOT use HTML markup characters like <, >, &, etc. in content text
+- DO NOT include citation marks, quotation marks, or source indicators
+- Write naturally as if explaining to a student
+- Use formal but friendly tone (존댓말)
 - Make content timeless and always appear current
-- Focus on practical benefits and real-world applications rather than technical details
-` : ''}
+- Focus on meaning, origin, usage examples, and practical applications
 
-**Explain IT topics in beginner-friendly way (IT Full Range):**
-When writing about IT topics, always explain them as if the reader has never heard of them before:
-- AI & Machine Learning: Explain what AI is, how it helps in daily life, simple AI tools anyone can use
-- Software Development: Explain what software is, how apps are made, tools that help create programs
-- Cloud Computing: Explain cloud storage in simple terms, how to use cloud services, benefits for everyday users
-- Cybersecurity: Explain online safety in simple terms, how to protect personal information, easy security tips
-- Data Science: Explain what data means, how data helps make decisions, simple data tools
-- Web Development: Explain how websites work, tools to create websites, simple web services
-- Mobile Development: Explain how mobile apps are made, tools for creating apps, popular app platforms
-- DevOps: Explain how software is delivered, automation in simple terms, tools that make work easier
-- IoT & Hardware: Explain smart devices, how everyday objects connect to internet, practical IoT examples
-- Blockchain: Explain blockchain in simple terms, how it's used in daily life, cryptocurrency basics
-- IT Services: Explain online services, software subscriptions, tools for businesses and individuals
-- Emerging Technologies: Explain new technologies in simple terms, how they affect daily life, practical applications
+**Content Structure for 고사성어 Articles:**
+When writing about 고사성어, follow this structure exactly:
+1. Basic meaning and definition of the 고사성어
+2. 한자 (Chinese characters) breakdown and explanation
+3. Historical origin story and background
+4. Lessons and insights from the story
+5. Modern applications and usage examples
+6. Practical usage examples in daily life
+7. Similar expressions and comparisons with other 사자성어
+8. FAQ section with common questions
 
-**Writing Style for Beginners:**
-- Start with "이것이 무엇인지 궁금하셨나요?" or similar friendly opening
-- Use everyday analogies: "클라우드는 마치 인터넷에 있는 거대한 창고 같아요"
-- Explain benefits first, technical details later (or skip if too complex)
-- Focus on "왜 필요한가?", "어떻게 사용하나?", "무엇이 좋은가?"
-- Use step-by-step guides with simple language
-- Include "초보자도 따라할 수 있는" examples
-- Avoid deep technical explanations unless absolutely necessary
+**Writing Style:**
+- Start with an engaging introduction about the 고사성어
+- Explain the meaning clearly and comprehensively
+- Tell the historical story in an engaging way
+- Connect the past to present-day applications
+- Use natural Korean without forced expressions
+- Include practical examples readers can relate to
+- Maintain educational but accessible tone
 
 The output must strictly follow the required Tistory blog format structure below. Maintain a professional, objective, and authoritative tone (E-E-A-T principle). The content must be 100% original and provide deep, verifiable insights.
 
@@ -89,201 +79,213 @@ The output must strictly follow the required Tistory blog format structure below
 16. Use clear layout separation and design elements suitable for general readers
 
 --- Required Tistory Article Structure (HTML Format) ---
-**EXACTLY match the design from https://rodangdong.tistory.com/225**
+**EXACTLY match the design from https://rodangdong.tistory.com/340**
 
-<h1>[Write an engaging H1 title that captures the unique essence of ${keyword} - this is DIFFERENT from the SEO title. Make it catchy and attention-grabbing like "MS 에이전트 365로 바뀌는 업무 혁신, AI가 일하는 시대"]</h1>
+<h1>[${keyword} 사자성어의 뜻과 유래 완벽 정리 | descriptive subtitle about the 고사성어]</h1>
 
-<h3>📌 같이 보면 좋은 글</h3>
+<h3>📚 같이 보면 좋은 글</h3>
 
 <ul>
-<li>▸ <a href="https://rodangdong.tistory.com/[random-article-1]" target="_blank">[Related Article Title 1]</a></li>
-<li>▸ <a href="https://rodangdong.tistory.com/[random-article-2]" target="_blank">[Related Article Title 2]</a></li>
-<li>▸ <a href="https://rodangdong.tistory.com/[random-article-3]" target="_blank">[Related Article Title 3]</a></li>
-<li>▸ <a href="https://rodangdong.tistory.com/[random-article-4]" target="_blank">[Related Article Title 4]</a></li>
-<li>▸ <a href="https://rodangdong.tistory.com/[random-article-5]" target="_blank">[Related Article Title 5]</a></li>
+${relatedArticles.length >= 5 
+  ? relatedArticles.slice(0, 5).map((article, i) => 
+      `<li>▸ <a href="${article.url}" target="_blank">${article.title}</a></li>`
+    ).join('\n')
+  : `<li>▸ <a href="https://rodangdong.tistory.com/category/%EA%B3%A0%EC%82%AC%EC%84%B1%EC%96%B4" target="_blank">고사성어 카테고리</a></li>
+<li>▸ <a href="https://rodangdong.tistory.com/category/%EA%B3%A0%EC%82%AC%EC%84%B1%EC%96%B4" target="_blank">사자성어 모음</a></li>
+<li>▸ <a href="https://rodangdong.tistory.com/category/%EA%B3%A0%EC%82%AC%EC%84%B1%EC%96%B4" target="_blank">한자성어 가이드</a></li>
+<li>▸ <a href="https://rodangdong.tistory.com/category/%EA%B3%A0%EC%82%AC%EC%84%B1%EC%96%B4" target="_blank">고사성어 유래</a></li>
+<li>▸ <a href="https://rodangdong.tistory.com/category/%EA%B3%A0%EC%82%AC%EC%84%B1%EC%96%B4" target="_blank">고사성어 완벽 정리</a></li>`
+}
 </ul>
 
-<h1>[Write the main H1 title again - this is the actual article title, different from the SEO title above. Example: "MS 에이전트 365, AI가 직접 일하는 새로운 업무 환경"]</h1>
+**IMPORTANT - Related Articles Information:**
+${relatedArticles.length > 0 
+  ? `Use these EXACT articles for the "같이 보면 좋은 글" section. Use the exact titles and URLs provided:
+${relatedArticles.slice(0, 5).map((article, i) => `${i + 1}. Title: "${article.title}", URL: "${article.url}"`).join('\n')}
 
-<p>[Start with an engaging opening paragraph that hooks the reader. Explain what ${keyword} is and why it matters. Use friendly, conversational tone. This paragraph should be 2-3 sentences that immediately capture attention. Include context and significance.]</p>
+You MUST use these exact titles and URLs in the HTML output. Do NOT modify or generate new ones.`
+  : 'If you have access to related 고사성어 articles from https://rodangdong.tistory.com/category/%EA%B3%A0%EC%82%AC%EC%84%B1%EC%96%B4, use them. Otherwise, create appropriate links to the 고사성어 category.'
+}
 
-<h2>📋 목차</h2>
+<h2>📌 목차</h2>
 
 <ol>
-<li>[Section 1 Title]</li>
-<li>[Section 2 Title]</li>
-<li>[Section 3 Title]</li>
-<li>[Section 4 Title]</li>
-<li>[Section 5 Title]</li>
-<li>[Section 6 Title or FAQ]</li>
+<li>${keyword}란? 사자성어의 기본 의미</li>
+<li>한자 풀이로 이해하는 ${keyword}</li>
+<li>${keyword}의 역사적 배경과 유래 이야기</li>
+<li>${keyword}가 주는 교훈과 의미</li>
+<li>현대 사회에서의 ${keyword} 활용</li>
+<li>실생활 사용 예문과 활용 팁</li>
+<li>비슷한 표현·사자성어와 비교</li>
+<li>자주 묻는 질문 (FAQ)</li>
 </ol>
 
-[If official website exists, include this right after 목차:]
-<p><strong>공식 사이트:</strong> <a href="[official-website-url]" target="_blank">[Official Website Name] 바로가기</a></p>
+<h2>${keyword}란? 사자성어의 기본 의미</h2>
 
-<h2>[Section 1 Title - use format like "${keyword}란 무엇인가: [subtitle]" or "${keyword}란 무엇인가: [descriptive subtitle]"]</h2>
+<p>[Start with an engaging paragraph that explains what ${keyword} means. Describe it as a 사자성어 (four-character idiom) and its basic meaning. Use clear, educational tone. This should be 2-3 sentences that immediately explain the 고사성어.]</p>
 
-<p>[Start with an engaging paragraph that explains what ${keyword} is. Use friendly, conversational tone. Include key concepts and why it matters. This should be 2-3 sentences.]</p>
+<p>[Continue with more details about the meaning and significance. Explain why this 고사성어 is important and what it represents. This should be 1-2 more paragraphs. Write naturally without HTML markup or citation marks in the text content.]</p>
 
-<p>[Continue with more details, examples, or context. This should be 1-2 more paragraphs. Include natural internal link to related article from https://rodangdong.tistory.com using format: <strong>🔗 관련 자료:</strong> <a href="https://rodangdong.tistory.com/[article-id]" target="_blank">[link text]</a>도 함께 확인해보세요.]</p>
+<p><strong>💡 핵심 포인트:</strong> [One key insight about what ${keyword} represents and why it matters]</p>
 
-<p><strong>💡 핵심 포인트:</strong> [One key insight or important fact about ${keyword}]</p>
+<h2>한자 풀이로 이해하는 ${keyword}</h2>
 
-<p>[Image placement - after first section content, before next section]</p>
-<img src="[official-site-logo-url OR web-searched-image-url]" alt="[Detailed ALT text describing the image, max 125 chars]" />
-<p>[Image caption text describing what the image shows - natural, friendly description]</p>
+<p>[Create a table explaining each 한자 character. Use proper format with table structure. Explain the meaning of each character and how they combine to form the complete meaning of ${keyword}. Write naturally without HTML markup in text content.]</p>
 
-<h2>[Section 2 Title - use format like "[Catchy phrase]: [subtitle]" or "[Action-oriented title]: [descriptive subtitle]"]</h2>
+<table>
+<thead>
+<tr>
+<th>한자</th>
+<th>훈음</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[First character]</td>
+<td>[Reading and meaning]</td>
+<td>[Detailed meaning]</td>
+</tr>
+<tr>
+<td>[Second character]</td>
+<td>[Reading and meaning]</td>
+<td>[Detailed meaning]</td>
+</tr>
+<tr>
+<td>[Third character]</td>
+<td>[Reading and meaning]</td>
+<td>[Detailed meaning]</td>
+</tr>
+<tr>
+<td>[Fourth character]</td>
+<td>[Reading and meaning]</td>
+<td>[Detailed meaning]</td>
+</tr>
+</tbody>
+</table>
 
-<p>[Write engaging content explaining the second main topic. Use friendly, conversational tone. Include practical examples and real-world scenarios. This should be 2-3 sentences.]</p>
+<p>[Explain how the characters combine to create the overall meaning. Write naturally without citation marks or HTML markup in text.]</p>
 
-<p>[Continue with more details or examples. This should be 1-2 more paragraphs. Include natural internal link using format: <strong>🔗 관련 자료:</strong> <a href="https://rodangdong.tistory.com/[article-id]" target="_blank">[link text]</a>도 함께 확인해보세요.]</p>
+<h2>${keyword}의 역사적 배경과 유래 이야기</h2>
 
-[If applicable, include highlight box:]
-<p><strong>💡 핵심 포인트:</strong> [One key insight]</p>
+<p>[Tell the historical story behind ${keyword}. Explain the origin, the historical period, and the key figures or events involved. Write in an engaging narrative style. This should be 2-3 paragraphs that tell the complete story naturally.]</p>
 
-<h2>[Section 3 Title - use format like "핵심 기능 [number]가지: [subtitle]" or "[Feature category]: [descriptive subtitle]"]</h2>
+<p>[Continue with more details about the historical context and how the story unfolded. Include specific details and make it engaging. Write naturally without HTML markup or citation indicators.]</p>
 
-<p>[Write introductory paragraph about key features, tools, or capabilities. Use friendly, conversational tone.]</p>
+<p><strong>📖 포인트:</strong> [One key insight about the historical significance]</p>
 
-<h3>1. [Feature/Tool Name 1]</h3>
-<p>[Description of feature 1 in simple terms. This should be 1-2 sentences.]</p>
+<h2>${keyword}가 주는 교훈과 의미</h2>
 
-<h3>2. [Feature/Tool Name 2]</h3>
-<p>[Description of feature 2 in simple terms. This should be 1-2 sentences.]</p>
+<p>[Explain the lessons and insights that ${keyword} teaches us. Connect the historical story to universal human values and principles. This should be 2-3 sentences.]</p>
 
-<h3>3. [Feature/Tool Name 3]</h3>
-<p>[Description of feature 3 in simple terms. This should be 1-2 sentences.]</p>
+<p>[Continue with more detailed explanation of the moral or practical lessons. Include examples of how these lessons apply to modern life. This should be 1-2 more paragraphs. Write naturally without HTML markup.]</p>
 
-[Continue with more features as needed. Include natural internal link using format:]
-<p><strong>🔗 유사 도구:</strong> <a href="https://rodangdong.tistory.com/[article-id]" target="_blank">[link text]</a>을 활용해보세요.</p>
+<h2>현대 사회에서의 ${keyword} 활용</h2>
 
-<p>[Image placement - after section 3 content]</p>
-<img src="[official-site-example-image-url OR web-searched-image-url]" alt="[Detailed ALT text describing the image, max 125 chars]" />
-<p>[Image caption text - natural, friendly description]</p>
+<p>[Explain how ${keyword} applies to modern society and contemporary situations. Give real-world examples that readers can relate to. This should be 2-3 sentences.]</p>
 
-<h2>[Section 4 Title - use format like "[Action-oriented title]: [subtitle]" or "[Use case title]: [descriptive subtitle]"]</h2>
+<p>[Continue with more modern applications and examples. Show how the ancient wisdom is still relevant today. This should be 1-2 more paragraphs.]</p>
 
-<p>[Write content about practical applications, use cases, or real-world examples. Use friendly, conversational tone. Include specific examples that readers can relate to. This should be 2-3 sentences.]</p>
+<h2>실생활 사용 예문과 활용 팁</h2>
 
-<p>[Continue with more examples or scenarios. Include practical scenarios like "예를 들어, ~할 때 이렇게 사용할 수 있어요". This should be 1-2 more paragraphs.]</p>
+<p>[Provide practical usage examples of ${keyword} in daily conversation and writing. Show how to use it correctly in sentences. This should be 2-3 sentences.]</p>
 
-<h2>[Section 5 Title - use format like "[Comparison/Conclusion title]: [subtitle]" or "[Final insights title]: [descriptive subtitle]"]</h2>
+<p>[Continue with more example sentences and usage tips. Include different contexts where ${keyword} can be used. This should be 1-2 more paragraphs.]</p>
 
-<p>[Write concluding content, comparisons, or final insights. Use friendly, conversational tone. Help readers understand when to use ${keyword} vs alternatives, or summarize key takeaways. This should be 2-3 sentences.]</p>
+<h2>비슷한 표현·사자성어와 비교</h2>
 
-<p>[Continue with final thoughts or recommendations. This should be 1-2 more paragraphs.]</p>
+<p>[Compare ${keyword} with similar 사자성어 or expressions. Explain the differences and when to use each one. This should be 2-3 sentences.]</p>
+
+<p>[Continue with detailed comparisons and explanations. Help readers understand the nuances. This should be 1-2 more paragraphs.]</p>
 
 <h2>자주 묻는 질문 (FAQ)</h2>
 
-<p><strong>Q1: [Beginner-friendly question about ${keyword} - use simple language like "${keyword}이 정확히 뭔가요?", "초보자도 사용할 수 있나요?"]</strong></p>
+<p><strong>Q1: [Question about ${keyword} - like "${keyword}의 정확한 뜻은 무엇인가요?", "${keyword}는 언제 사용하나요?"]</strong></p>
 
-<p>A1: [Answer in very simple, friendly language. Use everyday examples. Avoid technical jargon. Explain as if talking to a friend. This should be 2-3 sentences.]</p>
+<p>A1: [Answer clearly and comprehensively. Explain the meaning and usage naturally. This should be 2-3 sentences written in clean Korean without HTML markup.]</p>
 
-<p><strong>Q2: [Practical question beginners would ask - like "어떻게 시작하나요?", "비용이 얼마인가요?", "어디서 사용할 수 있나요?"]</strong></p>
+<p><strong>Q2: [Question about the origin - like "${keyword}의 유래는 무엇인가요?", "어떤 역사적 배경에서 생겨났나요?"]</strong></p>
 
-<p>A2: [Answer with practical, actionable information in simple terms. Focus on "어떻게", "얼마나", "어디서" in everyday language. This should be 2-3 sentences.]</p>
+<p>A2: [Answer with historical context and origin story. Explain naturally without citation marks. This should be 2-3 sentences.]</p>
 
-<p><strong>Q3: [Common beginner concern - like "어렵지 않나요?", "무료로 사용할 수 있나요?", "어떤 장점이 있나요?"]</strong></p>
+<p><strong>Q3: [Question about usage - like "${keyword}를 어떻게 활용할 수 있나요?", "실생활에서 어떤 예가 있나요?"]</strong></p>
 
-<p>A3: [Reassure and explain benefits in simple terms. Use friendly, encouraging tone. This should be 2-3 sentences.]</p>
+<p>A3: [Answer with practical examples and usage tips. Provide real-world applications. This should be 2-3 sentences.]</p>
 
-<p><strong>Q4: [Practical usage question - like "언제 사용하면 좋나요?", "다른 것과 뭐가 다른가요?"]</strong></p>
+<p><strong>Q4: [Question about comparison - like "${keyword}와 비슷한 사자성어는 무엇인가요?", "다른 표현과 어떤 차이가 있나요?"]</strong></p>
 
-<p>A4: [Answer with practical examples and simple comparisons. Use everyday situations. This should be 2-3 sentences.]</p>
+<p>A4: [Answer with comparisons to similar expressions. Explain differences clearly. This should be 2-3 sentences.]</p>
 
-<p><strong>Q5: [Beginner troubleshooting question - like "문제가 생기면 어떻게 하나요?", "도움이 필요하면 어디서 받을 수 있나요?"]</strong></p>
+<p><strong>Q5: [Question about meaning - like "${keyword}가 주는 교훈은 무엇인가요?", "현대에 어떤 의미가 있나요?"]</strong></p>
 
-<p>A5: [Provide simple solutions and helpful resources. Use encouraging, supportive tone. This should be 2-3 sentences.]</p>
+<p>A5: [Answer with insights and modern significance. Explain the lessons and relevance. This should be 2-3 sentences.]</p>
 
 [Add more Q&A pairs as needed, up to 7 total]
 
 <hr />
 
-<p><strong>추천 태그:</strong> #${keyword} #[related-tag-1] #[related-tag-2] #[related-tag-3] #[related-tag-4] #[related-tag-5]</p>
+<p><strong>추천 태그:</strong> #${keyword} #사자성어 #고사성어 #한자성어 #고사성어유래</p>
 
---- Quality Constraints for Beginner-Friendly Content ---
-1. **For Korean articles: Use friendly, conversational Korean like talking to a friend. For English articles: Strictly use US English.**
+--- Quality Constraints for 고사성어 Content ---
+1. **Write ENTIRELY in Korean using natural, educational tone.**
 2. **Ensure content is not detectable as AI-generated - write naturally and warmly.**
-3. **Ensure all factual claims are accurate and verifiable.**
-4. **Word count: STRICTLY 1000-2000 words (must be within this range).**
-5. **Focus on commercial intent keywords with high search volume, but explain them in beginner-friendly terms.**
-6. **CRITICAL: Create unique, friendly section titles that beginners can easily understand.**
-7. **DO NOT use templated or technical section titles. Use friendly, question-based titles like "${keyword}이란 무엇인가요?"**
-8. **Section titles should be engaging, conversational, friendly, and easy to understand for non-technical readers.**
-9. **SEO title (for filename) and H1 title must be DIFFERENT.**
-10. **SEO title must be under 50 characters, creative, attention-grabbing, and SEO-optimized.**
-11. **Examples of GOOD beginner-friendly section titles:**
-   - For AI Tools: "AI 도구란 무엇인가요?", "초보자도 사용할 수 있는 AI 도구 추천", "AI 도구 실제 활용 사례"
-   - For Cloud Services: "클라우드가 뭔가요? 쉽게 알아보기", "클라우드 서비스 시작하기", "일상생활에서 클라우드 활용하기"
-   - For Security: "온라인 보안이 왜 중요한가요?", "초보자도 할 수 있는 보안 팁", "개인정보 보호하는 방법"
-12. **Be conversational, warm, and friendly. Write as if explaining to a friend who knows nothing about IT.**
-13. **Use simple, everyday words. Avoid technical jargon completely. If technical terms are unavoidable, explain them in simple words first.**
-14. **Include clear layout separation and design elements in HTML.**
-15. **Images: Minimum 2 images required. Use official site images if available, otherwise search for appropriate web images.**
-16. **NEVER use placeholder images or descriptive text instead of actual images.**
-17. **All images must have proper alt attributes and captions in simple language.**
-18. **Include 5 related article links in "같이보면 좋은 글" section.**
-19. **Include 3 additional internal links naturally embedded in content.**
-20. **Include table of contents (목차) with anchor links.**
-21. **Include FAQ section with 5-7 beginner-friendly questions (not technical questions).**
-22. **Include 5 recommended tags at the end.**
-23. **Include official website link if available.**
-24. **AVOID time-limited expressions like "2025년 완벽정리" - use "완벽정리" instead.**
-25. **Make content timeless and always appear current.**
-26. **CRITICAL: Write for people with ZERO IT background. Assume readers know nothing about the topic.**
-27. **Use analogies and real-life examples extensively. Compare IT concepts to everyday things.**
-28. **Focus on practical benefits and "why should I care?" rather than technical "how it works".**
-29. **Use friendly sentence endings like "~해요", "~입니다" to create warm, approachable tone.**
-30. **Avoid complex sentence structures. Use short, clear sentences.**
+3. **Ensure all historical facts and 한자 meanings are accurate and verifiable.**
+4. **Word count: STRICTLY 1200-2000 words (must be within this range).**
+5. **CRITICAL: Follow the EXACT section structure from the reference page.**
+6. **DO NOT include HTML markup characters (<, >, &, etc.) in the actual text content.**
+7. **DO NOT include citation marks, quotation marks, or source indicators in content.**
+8. **Write clean, natural Korean text without any markup or citation indicators.**
+9. **Section titles must match the reference format exactly.**
+10. **Include proper 한자 (Chinese characters) with 훈음 (reading and meaning) in the table.**
+11. **Tell the historical story in an engaging, narrative style.**
+12. **Connect historical lessons to modern applications naturally.**
+13. **Include practical usage examples in modern Korean.**
+14. **Compare with similar 사자성어 to help readers understand nuances.**
+15. **FAQ questions should be about meaning, origin, usage, and comparison.**
+16. **Use formal but friendly tone (존댓말) throughout.**
+17. **Make content timeless and always appear current.**
+18. **Focus on educational value and cultural significance.**
+19. **Write naturally without forced expressions or templates.**
+20. **Ensure all 한자 characters and their meanings are correct.**
 `;
 
 /**
  * 키워드 수집을 위한 프롬프트 템플릿 (실시간 검색어 상위 노출 기반 - 다양성 강화)
  */
-export const generateKeywordPrompt = () => `
-You are a digital marketing expert specializing in IT trends across all fields.
-Your task is to suggest 30 DIVERSE high-potential keywords that are CURRENTLY trending in real-time search rankings.
+export const generateKeywordPrompt = (usedGosaList = []) => `
+You are a Korean language and culture expert specializing in 고사성어 (traditional four-character idioms).
+Your task is to suggest 고사성어 (사자성어) that are NOT already used.
+
+**IMPORTANT - EXCLUSION LIST:**
+The following 고사성어 have already been used and MUST NOT be suggested:
+${usedGosaList.length > 0 ? usedGosaList.map((gosa, i) => `${i + 1}. ${gosa}`).join('\n') : 'None yet'}
 
 **Requirements:**
-1. High search volume and trending status (currently ranking high in real-time searches)
-2. High commercial intent (buying/solution-seeking keywords)
-3. Low to medium competition
-4. MAXIMUM DIVERSITY - cover different IT areas, tools, concepts, and use cases
-5. Beginner-friendly topics that general public can understand
+1. Select 고사성어 (사자성어) that are well-known and commonly used
+2. Choose 고사성어 with interesting historical stories and clear meanings
+3. Prioritize 고사성어 that are educational and culturally significant
+4. Ensure each 고사성어 is exactly 4 characters (한자)
+5. Select 고사성어 that are NOT in the exclusion list above
 
-**CRITICAL - DIVERSITY REQUIREMENT:**
-Generate keywords from MANY DIFFERENT IT areas to ensure variety:
-- AI & Machine Learning: AI tools, AI services, machine learning platforms, AI assistants
-- Software & Development: programming tools, development environments, code editors, software solutions
-- Cloud & Infrastructure: cloud services, cloud platforms, serverless, infrastructure tools
-- Security & Privacy: cybersecurity tools, security solutions, data protection, encryption tools
-- Data & Analytics: data tools, analytics platforms, database solutions, BI tools
-- Web Development: web frameworks, web tools, frontend/backend tools, web services
-- Mobile Development: mobile app tools, cross-platform tools, mobile frameworks
-- DevOps & Automation: automation tools, CI/CD platforms, monitoring tools, deployment tools
-- IoT & Hardware: IoT platforms, smart devices, hardware tools, embedded systems
-- Blockchain & Crypto: blockchain tools, crypto wallets, DeFi platforms (educational only)
-- Gaming: game development tools, game engines, gaming platforms
-- Networking: network tools, VPN services, CDN services, network monitoring
-- Productivity: productivity tools, collaboration tools, project management tools
-- Design & Creative: design tools, UI/UX tools, creative software
-- Emerging Tech: quantum computing basics, edge computing, 5G, AR/VR tools, metaverse basics
-
-**Diversity Strategy:**
-- Mix different difficulty levels (beginner, intermediate)
-- Include both tools/services and concepts/theories
-- Cover both practical "how-to" and explanatory "what-is" topics
-- Vary the topics across different IT domains
-- Some overlap is ACCEPTABLE if topics are different enough
+**Common 고사성어 Examples (for reference, but check exclusion list):**
+- 관포지교, 결자해지, 고식지계, 노심초사, 사필귀정, 점입가경
+- 백이숙제, 근하신년, 교토삼굴, 과유불급, 구우일모, 금의환향
+- 다다익선, 대기만성, 도원결의, 동고동락, 마이동풍, 막역지우
+- 면종복배, 백년해로, 백문불여일견, 백절불굴, 반포지효, 방약무인
+- 비일비재, 사면초가, 삼고초려, 상전벽해, 새옹지마, 설상가상
+- 수어지교, 순망치한, 시시비비, 십시일반, 아비규환, 안하무인
+- 어부지리, 역지사지, 오비이락, 오십보백보, 와신상담, 완벽무결
+- 유비무환, 일석이조, 일신우일신, 일확천금, 입신양명, 자업자득
+- 작심삼일, 장부일언, 전화위복, 조삼모사, 주경야독, 지록위마
+- 천고마비, 청출어람, 초지일관, 타산지석, 파죽지세, 필부필부
+- 한단지몽, 화룡점정, 회자정리, 후생가외
 
 **IMPORTANT:**
-- Prioritize keywords that are CURRENTLY trending in real-time search rankings
-- Focus on beginner-friendly topics that general public can understand
-- Return 30 keywords to maximize diversity
-- Each keyword should be 2-6 words long
-- Keywords should reflect CURRENTLY TRENDING IT topics
+- Return ONLY 고사성어 that are NOT in the exclusion list
+- Each keyword should be exactly 4 한자 characters
+- Return 10-20 고사성어 to choose from
+- Focus on well-known, educational 고사성어
 
-Return only the keywords as a JSON array, like: ["keyword1", "keyword2", "keyword3", ...]
-Make sure to return EXACTLY 30 keywords covering diverse IT areas.
+Return only the 고사성어 as a JSON array, like: ["고사성어1", "고사성어2", "고사성어3", ...]
+Make sure ALL returned 고사성어 are NOT in the exclusion list.
 `;
