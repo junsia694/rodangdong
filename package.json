@@ -36,6 +36,7 @@
     "express": "^5.1.0",
     "fs-extra": "^11.2.0",
     "googleapis": "^128.0.0",
+    "jsdom": "^27.0.1",
     "markdown-it": "^14.1.0",
     "multer": "^2.0.2",
     "node-cron": "^3.0.3"
@@ -44,6 +45,6 @@
     "nodemon": "^3.1.0"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }
