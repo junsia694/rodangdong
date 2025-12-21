@@ -17,9 +17,6 @@ class BlogAutomationRunner {
     this.bloggerPublisher = new BloggerPublisher();
     this.keywordHarvester = new KeywordHarvester();
     this.contentGenerator = new ContentGenerator();
-    
-    // KeywordHarvester에 BloggerPublisher 주입
-    this.keywordHarvester.setBloggerPublisher(this.bloggerPublisher);
   }
 
   /**
@@ -170,16 +167,7 @@ class BlogAutomationRunner {
       const newKeywords = await this.keywordHarvester.harvestAndSaveKeywords();
       console.log(`✅ ${newKeywords.length}개의 새로운 키워드 발견\n`);
       
-      // 모든 키워드도 확인
-      const allKeywords = await this.keywordHarvester.harvestAllKeywords();
-      console.log(`📊 총 ${allKeywords.length}개의 키워드 수집\n`);
-      
       // 결과 출력
-      console.log('📋 수집된 모든 키워드:');
-      allKeywords.forEach((keyword, index) => {
-        console.log(`  ${index + 1}. ${keyword}`);
-      });
-      
       console.log('\n🆕 새로운 키워드:');
       if (newKeywords.length > 0) {
         newKeywords.forEach((keyword, index) => {
@@ -190,7 +178,7 @@ class BlogAutomationRunner {
       }
       
       console.log('\n💡 사용법:');
-      console.log(`  node scripts/run-blog-automation.js --keyword "${newKeywords[0] || allKeywords[0]}"`);
+      console.log(`  node scripts/run-blog-automation.js --keyword "${newKeywords[0] || '고사성어'}"`);
       
     } catch (error) {
       console.error('❌ 키워드 추출 실패:', error.message);

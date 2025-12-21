@@ -17,9 +17,6 @@ class GitHubActionsBlog {
     this.keywordHarvester = new KeywordHarvester();
     this.contentGenerator = new ContentGenerator();
     this.fileDb = new FileDatabase();
-    
-    // KeywordHarvester에 BloggerPublisher 주입
-    this.keywordHarvester.setBloggerPublisher(this.bloggerPublisher);
   }
 
   /**
@@ -112,31 +109,19 @@ class GitHubActionsBlog {
   }
 
   /**
-   * 새로운 키워드 1개 선택 (AI 최종 검증)
+   * 새로운 키워드 1개 선택
    */
   async selectNewKeyword() {
     try {
-      // 1차 필터링된 키워드 수집
-      const candidates = await this.keywordHarvester.harvestAllKeywords();
+      // 고사성어 키워드 수집
+      const keywords = await this.keywordHarvester.harvestAndSaveKeywords();
       
-      console.log(`📊 1차 필터링 완료: ${candidates.length}개 후보`);
-      
-      if (candidates.length === 0) {
-        console.log('⚠️  사용 가능한 후보 키워드가 없습니다.');
+      if (keywords.length === 0) {
+        console.log('⚠️  사용 가능한 새로운 키워드가 없습니다.');
         return null;
       }
       
-      // 2차: AI로 가장 유사도 낮은 1개 선택
-      console.log('\n🤖 AI로 최종 키워드 선택 중...');
-      const existingTitles = await this.bloggerPublisher.getAllPostTitles();
-      const selectedKeyword = await this.keywordHarvester.selectMostUniqueKeyword(candidates, existingTitles);
-      
-      if (!selectedKeyword) {
-        console.log('⚠️  모든 후보가 기존 게시글과 유사합니다. 재시도 필요.');
-        return null;
-      }
-      
-      return selectedKeyword;
+      return keywords[0];
       
     } catch (error) {
       console.error('키워드 선택 실패:', error);
