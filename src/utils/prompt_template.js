@@ -17,26 +17,34 @@ Your task is to write a comprehensive, accurate, and highly engaging KOREAN arti
 **CRITICAL DESIGN REFERENCE:**
 You MUST follow the EXACT design and content structure from this reference page: https://rodangdong.tistory.com/340
 Study the design elements, layout, formatting, and content organization from this page and replicate it EXACTLY:
-- Title format: "[고사성어] 사자성어의 뜻과 유래 완벽 정리 | [descriptive subtitle]"
+- Title format: "[고사성어] 사자성어의 뜻과 유래 완벽 정리 | [descriptive subtitle]" - NO English
 - "📚 같이 보면 좋은 글" section with 5 links using ▸ symbol (NOT "📌 같이 보면 좋은 글")
 - "📌 목차" section with numbered list
 - Section structure and formatting style EXACTLY matching the reference
+- Spacing, paragraph breaks, and visual hierarchy EXACTLY as in the reference
+- Emoji usage (📚, 📌, 💡, etc.) EXACTLY as in the reference
+- Table formatting for 한자 풀이 EXACTLY as in the reference
 - NO HTML markup characters or citation marks in content
 - NO quotation marks or citation indicators
+- NO English phrases, titles, or expressions anywhere
 - Clean, natural Korean text only
+- Design elements (spacing, formatting, structure) must match pixel-perfect
 
 **IMPORTANT - KOREAN LANGUAGE REQUIREMENTS:**
-- Write ENTIRELY in Korean (한국어)
+- Write ENTIRELY in Korean (한국어) - NO English titles, phrases, or expressions
+- NEVER use English phrases like "Smart ways to...", "How to...", or any English expressions
 - Use clear, educational Korean suitable for explaining 고사성어
 - Explain historical context and origins naturally
 - Use proper 한자 (Chinese characters) when explaining the meaning
 - Include historical stories and background naturally
 - DO NOT use HTML markup characters like <, >, &, etc. in content text
 - DO NOT include citation marks, quotation marks, or source indicators
-- Write naturally as if explaining to a student
+- Write naturally as if explaining to a student - NOT like AI-generated content
 - Use formal but friendly tone (존댓말)
 - Make content timeless and always appear current
 - Focus on meaning, origin, usage examples, and practical applications
+- AVOID any expressions that sound like AI-generated content
+- Write as a human Korean language expert would write, not as an AI
 
 **Content Structure for 고사성어 Articles:**
 When writing about 고사성어, follow this structure exactly:
@@ -57,6 +65,10 @@ When writing about 고사성어, follow this structure exactly:
 - Use natural Korean without forced expressions
 - Include practical examples readers can relate to
 - Maintain educational but accessible tone
+- Write in a way that does NOT sound like AI-generated content
+- Use varied sentence structures and natural flow
+- Avoid repetitive patterns or formulaic expressions
+- Write as a knowledgeable human expert, not as an AI assistant
 
 The output must strictly follow the required Tistory blog format structure below. Maintain a professional, objective, and authoritative tone (E-E-A-T principle). The content must be 100% original and provide deep, verifiable insights.
 
@@ -227,26 +239,31 @@ You MUST use these exact titles and URLs in the HTML output. Do NOT modify or ge
 <p><strong>추천 태그:</strong> #${keyword} #사자성어 #고사성어 #한자성어 #고사성어유래</p>
 
 --- Quality Constraints for 고사성어 Content ---
-1. **Write ENTIRELY in Korean using natural, educational tone.**
-2. **Ensure content is not detectable as AI-generated - write naturally and warmly.**
-3. **Ensure all historical facts and 한자 meanings are accurate and verifiable.**
-4. **Word count: STRICTLY 1200-2000 words (must be within this range).**
-5. **CRITICAL: Follow the EXACT section structure from the reference page.**
-6. **DO NOT include HTML markup characters (<, >, &, etc.) in the actual text content.**
-7. **DO NOT include citation marks, quotation marks, or source indicators in content.**
-8. **Write clean, natural Korean text without any markup or citation indicators.**
-9. **Section titles must match the reference format exactly.**
-10. **Include proper 한자 (Chinese characters) with 훈음 (reading and meaning) in the table.**
-11. **Tell the historical story in an engaging, narrative style.**
-12. **Connect historical lessons to modern applications naturally.**
-13. **Include practical usage examples in modern Korean.**
-14. **Compare with similar 사자성어 to help readers understand nuances.**
-15. **FAQ questions should be about meaning, origin, usage, and comparison.**
-16. **Use formal but friendly tone (존댓말) throughout.**
-17. **Make content timeless and always appear current.**
-18. **Focus on educational value and cultural significance.**
-19. **Write naturally without forced expressions or templates.**
-20. **Ensure all 한자 characters and their meanings are correct.**
+1. **Write ENTIRELY in Korean using natural, educational tone - NO English whatsoever.**
+2. **CRITICAL: Ensure content is NOT detectable as AI-generated - write naturally, warmly, and human-like.**
+3. **NEVER use English phrases, titles, or expressions (e.g., "Smart ways to...", "How to...", etc.)**
+4. **Ensure all historical facts and 한자 meanings are accurate and verifiable.**
+5. **Word count: STRICTLY 1200-2000 words (must be within this range).**
+6. **CRITICAL: Follow the EXACT section structure and design elements from the reference page.**
+7. **DO NOT include HTML markup characters (<, >, &, etc.) in the actual text content.**
+8. **DO NOT include citation marks, quotation marks, or source indicators in content.**
+9. **Write clean, natural Korean text without any markup or citation indicators.**
+10. **Section titles must match the reference format exactly.**
+11. **Include proper 한자 (Chinese characters) with 훈음 (reading and meaning) in the table.**
+12. **Tell the historical story in an engaging, narrative style - like a human storyteller.**
+13. **Connect historical lessons to modern applications naturally.**
+14. **Include practical usage examples in modern Korean.**
+15. **Compare with similar 사자성어 to help readers understand nuances.**
+16. **FAQ questions should be about meaning, origin, usage, and comparison.**
+17. **Use formal but friendly tone (존댓말) throughout.**
+18. **Make content timeless and always appear current.**
+19. **Focus on educational value and cultural significance.**
+20. **Write naturally without forced expressions, templates, or AI-like patterns.**
+21. **Vary sentence length and structure to avoid repetitive patterns.**
+22. **Use natural transitions and flow, not formulaic connectors.**
+23. **Write as if you are a knowledgeable Korean language teacher, not an AI.**
+24. **Ensure all 한자 characters and their meanings are correct.**
+25. **CRITICAL: Match ALL design elements from the reference page exactly - spacing, formatting, emoji usage, etc.**
 `;
 
 /**

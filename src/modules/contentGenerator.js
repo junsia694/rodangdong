@@ -147,6 +147,32 @@ Korean translation (clean content only):
     const errors = [];
     const warnings = [];
 
+    // 영어 표현 검증 (AI가 쓴 것 같은 내용 제외)
+    const englishPatterns = [
+      /Smart ways to/i,
+      /How to/i,
+      /Ways to/i,
+      /Tips for/i,
+      /Guide to/i,
+      /Complete guide/i,
+      /Ultimate guide/i,
+      /Step by step/i,
+      /Best practices/i,
+      /Top \d+/i
+    ];
+    
+    const hasEnglishAI = englishPatterns.some(pattern => pattern.test(content));
+    if (hasEnglishAI) {
+      errors.push('Content contains English AI-like expressions. Remove all English phrases.');
+    }
+    
+    // 영어 단어가 많이 포함된 경우 경고
+    const englishWords = content.match(/\b[A-Za-z]{3,}\b/g) || [];
+    const koreanWords = content.match(/[가-힣]+/g) || [];
+    if (englishWords.length > koreanWords.length * 0.1) {
+      warnings.push('Content contains too many English words. Use Korean only.');
+    }
+
     // 최소 단어 수 검증
     const wordCount = this.countWords(content);
     if (wordCount < config.app.minWordCount) {
