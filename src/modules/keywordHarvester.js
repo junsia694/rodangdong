@@ -1,23 +1,14 @@
-import axios from 'axios';
-import { generateKeywordPrompt } from '../utils/prompt_template.js';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { config } from '../config/index.js';
 import FileDatabase from './fileDb.js';
-import TrendKeywordCollector from './trendKeywordCollector.js';
 import GosaCollector from './gosaCollector.js';
 
 /**
  * 키워드 수집 모듈
- * Google Trends, Reddit, Hacker News에서 트렌드 키워드 수집
- * 중복 방지 로직 포함
+ * 고사성어 키워드 수집 (AI 호출 최소화)
  */
 
 class KeywordHarvester {
   constructor() {
-    this.genAI = new GoogleGenerativeAI(config.gemini.apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: config.gemini.model });
     this.db = new FileDatabase();
-    this.trendCollector = new TrendKeywordCollector();
     this.gosaCollector = new GosaCollector();
     this.bloggerPublisher = null; // 필요시 주입
   }
@@ -932,45 +923,47 @@ New Evergreen Topic:`;
   }
 
   /**
-   * 새로운 고사성어 생성 (AI 사용)
+   * 새로운 고사성어 생성 (AI 사용하지 않고 직접 선택)
    * @param {Array<string>} usedGosaList - 사용된 고사성어 목록
    * @returns {Promise<string|null>} 새로운 고사성어
    */
   async generateNewGosa(usedGosaList) {
     try {
-      console.log('🤖 AI로 새로운 고사성어 생성 중...');
+      console.log('📚 사용 가능한 고사성어 목록에서 선택 중...');
       
-      const prompt = generateKeywordPrompt(usedGosaList);
-      
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().trim();
-      
-      // JSON 배열 파싱 시도
-      let gosaList = [];
-      try {
-        gosaList = JSON.parse(text);
-      } catch {
-        // JSON이 아니면 줄 단위로 파싱
-        gosaList = text
-          .split('\n')
-          .map(line => line.trim().replace(/^["']|["']$/g, '').replace(/^[-•\d+\.\)]\s*/, ''))
-          .filter(line => line.length >= 2 && line.length <= 4 && /^[가-힣]+$/.test(line));
-      }
+      // 일반적인 고사성어 목록 (AI 호출 없이 직접 사용)
+      const commonGosa = [
+        '관포지교', '결자해지', '고식지계', '노심초사', '사필귀정', '점입가경',
+        '백이숙제', '근하신년', '교토삼굴', '과유불급', '구우일모', '금의환향',
+        '다다익선', '대기만성', '도원결의', '동고동락', '마이동풍', '막역지우',
+        '면종복배', '백년해로', '백문불여일견', '백절불굴', '반포지효', '방약무인',
+        '비일비재', '사면초가', '삼고초려', '상전벽해', '새옹지마', '설상가상',
+        '수어지교', '순망치한', '시시비비', '십시일반', '아비규환', '안하무인',
+        '어부지리', '역지사지', '오비이락', '오십보백보', '와신상담', '완벽무결',
+        '유비무환', '일석이조', '일신우일신', '일확천금', '입신양명', '자업자득',
+        '작심삼일', '장부일언', '전화위복', '조삼모사', '주경야독', '지록위마',
+        '천고마비', '청출어람', '초지일관', '타산지석', '파죽지세', '필부필부',
+        '한단지몽', '화룡점정', '회자정리', '후생가외', '형우제공', '기고만장',
+        '풍수지탄', '불문곡직', '과유불급', '구우일모', '금의환향', '다다익선'
+      ];
       
       // 사용되지 않은 고사성어 필터링
-      const availableGosa = gosaList.filter(gosa => !usedGosaList.includes(gosa));
+      const availableGosa = commonGosa.filter(gosa => !usedGosaList.includes(gosa));
       
       if (availableGosa.length === 0) {
-        console.warn('⚠️  모든 후보 고사성어가 이미 사용됨');
+        console.warn('⚠️  모든 일반 고사성어가 사용됨');
         return null;
       }
       
-      // 첫 번째 사용 가능한 고사성어 반환
-      return availableGosa[0];
+      // 랜덤 선택 (AI 호출 없음)
+      const randomIndex = Math.floor(Math.random() * availableGosa.length);
+      const selectedGosa = availableGosa[randomIndex];
+      
+      console.log(`✅ 선택된 고사성어: ${selectedGosa} (AI 호출 없이 직접 선택)`);
+      return selectedGosa;
       
     } catch (error) {
-      console.error('고사성어 생성 실패:', error);
+      console.error('고사성어 선택 실패:', error);
       return null;
     }
   }

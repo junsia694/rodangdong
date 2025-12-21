@@ -74,21 +74,25 @@ The output must strictly follow the required Tistory blog format structure below
 
 **CRITICAL OUTPUT FORMAT REQUIREMENTS:**
 1. Output must be in HTML format ready for Tistory HTML editor (body content only, no DOCTYPE or html/head tags)
-2. Word count: 1000-2000 words (strictly within this range)
+2. Word count: 1200-2000 words (strictly within this range)
 3. Use SEO-optimized title (separate from H1 tag)
 4. Title and H1 tag must be DIFFERENT
 5. Include table of contents (목차)
-6. Include "같이보면 좋은 글" section with 5 related article links from https://rodangdong.tistory.com
+6. Include "📚 같이 보면 좋은 글" section with 5 related article links from https://rodangdong.tistory.com
 7. Include 3 additional internal links naturally embedded in the content
-8. Minimum 2 images with proper alt attributes and descriptions
-9. If official website exists, use official logo and example images from official site
-10. If no official site, search for appropriate thumbnail images from web
-11. NEVER use placeholder images or descriptive text instead of images
-12. Include FAQ section with 5-7 common questions
-13. Use keyword-rich subheadings (H2, H3 tags)
-14. Include 5 recommended tags at the end
-15. Include official website link if available
-16. Use clear layout separation and design elements suitable for general readers
+8. Include image placement information in the following format within the content:
+   **Image 1 Placement:** After the first section
+   **Image 1 Description (for Unsplash Search):** [고사성어 한자 or 역사적 배경 related search term in Korean]
+   **Image 1 ALT Text:** [한국어 ALT 텍스트]
+   
+   **Image 2 Placement:** After the third section
+   **Image 2 Description (for Unsplash Search):** [고사성어 활용 or 현대적 의미 related search term in Korean]
+   **Image 2 ALT Text:** [한국어 ALT 텍스트]
+9. Images should be related to 한자, 역사, 전통 문화, 고사성어 의미
+10. Include FAQ section with 5-7 common questions
+11. Use keyword-rich subheadings (H2, H3 tags)
+12. Include 5 recommended tags at the end
+13. Use clear layout separation and design elements suitable for general readers
 
 --- Required Tistory Article Structure (HTML Format) ---
 **EXACTLY match the design from https://rodangdong.tistory.com/340**
@@ -139,6 +143,10 @@ You MUST use these exact titles and URLs in the HTML output. Do NOT modify or ge
 <p>[Continue with more details about the meaning and significance. Explain why this 고사성어 is important and what it represents. This should be 1-2 more paragraphs. Write naturally without HTML markup or citation marks in the text content.]</p>
 
 <p><strong>💡 핵심 포인트:</strong> [One key insight about what ${keyword} represents and why it matters]</p>
+
+**Image 1 Placement:** After the first section (${keyword}란? 사자성어의 기본 의미)
+**Image 1 Description (for Unsplash Search):** [한국어로 고사성어 한자 또는 역사적 의미와 관련된 검색어, 예: "한자 서예", "중국 고대 역사", "${keyword} 한자"]
+**Image 1 ALT Text:** [한국어 ALT 텍스트, 예: "${keyword} 한자 서예"]
 
 <h2>한자 풀이로 이해하는 ${keyword}</h2>
 
@@ -204,6 +212,10 @@ You MUST use these exact titles and URLs in the HTML output. Do NOT modify or ge
 
 <p>[Continue with more example sentences and usage tips. Include different contexts where ${keyword} can be used. This should be 1-2 more paragraphs.]</p>
 
+**Image 2 Placement:** After the third section (${keyword}의 역사적 배경과 유래 이야기)
+**Image 2 Description (for Unsplash Search):** [한국어로 고사성어 활용 또는 현대적 의미와 관련된 검색어, 예: "전통 문화", "역사적 교훈", "현대 사회"]
+**Image 2 ALT Text:** [한국어 ALT 텍스트, 예: "${keyword}의 현대적 의미"]
+
 <h2>비슷한 표현·사자성어와 비교</h2>
 
 <p>[Compare ${keyword} with similar 사자성어 or expressions. Explain the differences and when to use each one. This should be 2-3 sentences.]</p>
@@ -264,6 +276,8 @@ You MUST use these exact titles and URLs in the HTML output. Do NOT modify or ge
 23. **Write as if you are a knowledgeable Korean language teacher, not an AI.**
 24. **Ensure all 한자 characters and their meanings are correct.**
 25. **CRITICAL: Match ALL design elements from the reference page exactly - spacing, formatting, emoji usage, etc.**
+26. **IMPORTANT: Include image placement information in the content so images can be extracted without additional API calls.**
+27. **Image search terms should be in Korean and related to 한자, 역사, 전통 문화.**
 `;
 
 /**

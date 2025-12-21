@@ -102,11 +102,11 @@ Korean translation (clean content only):
         throw new Error(`Content validation failed: ${validation.errors.join(', ')}`);
       }
 
-      // 이미지 정보 추출 (AI 우선 사용)
-      const imageInfo = await this.extractImageInfo(markdownContent, keyword);
+      // 이미지 정보 추출 (마크다운에서 직접 추출, AI 호출 없음)
+      const imageInfo = this.extractImageInfoFromContent(markdownContent);
       
-      // 이미지 URL 가져오기 (한 번만)
-      const imageUrls = await this.fetchImageUrls(imageInfo);
+      // 이미지 URL 가져오기 (간단한 키워드 기반, AI 호출 없음)
+      const imageUrls = await this.fetchImageUrlsSimple(imageInfo, keyword);
       
       // SEO 메타데이터 추출
       const seoData = this.extractSEOMetadata(markdownContent);
@@ -227,12 +227,20 @@ Korean translation (clean content only):
   }
 
   /**
-   * Gemini AI를 사용하여 키워드와 관련된 이미지 정보 생성
+   * Gemini AI를 사용하여 키워드와 관련된 이미지 정보 생성 (사용 안 함 - AI 호출 최소화)
    * @param {string} keyword - 블로그 키워드
    * @param {string} content - 마크다운 콘텐츠
    * @returns {Promise<Array>} 이미지 정보 배열
    */
   async generateImageInfoWithAI(keyword, content) {
+    // AI 호출 최소화를 위해 사용하지 않음
+    return this.getFallbackImageInfo(keyword);
+  }
+  
+  /**
+   * @deprecated 사용 안 함 - AI 호출 최소화
+   */
+  async _generateImageInfoWithAI_OLD(keyword, content) {
     try {
       const prompt = `
 Keyword: "${keyword}"
@@ -351,65 +359,32 @@ IMPORTANT: Respond ONLY in English. Use only the format above.
   }
 
   /**
-   * 폴백 이미지 정보 생성
-   * @param {string} keyword - 키워드
+   * 폴백 이미지 정보 생성 (고사성어용)
+   * @param {string} keyword - 키워드 (고사성어)
    * @returns {Array} 기본 이미지 정보
    */
   getFallbackImageInfo(keyword) {
-    console.warn('⚠️  AI 이미지 생성 실패, 폴백 이미지 정보 사용');
+    console.warn('⚠️  이미지 정보를 찾을 수 없어 기본 이미지 정보 사용');
     
-    // 키워드에 따른 기본 이미지 정보
-    const keywordLower = keyword.toLowerCase();
-    
-    if (keywordLower.includes('ai') || keywordLower.includes('artificial intelligence')) {
-      return [
-        { placement: '1', description: 'artificial intelligence neural network', altText: 'AI neural network visualization' },
-        { placement: '2', description: 'machine learning data analysis', altText: 'Machine learning data processing' }
-      ];
-    } else if (keywordLower.includes('blockchain') || keywordLower.includes('crypto')) {
-      return [
-        { placement: '1', description: 'blockchain technology network', altText: 'Blockchain network visualization' },
-        { placement: '2', description: 'cryptocurrency trading dashboard', altText: 'Digital currency trading interface' }
-      ];
-    } else if (keywordLower.includes('cloud') || keywordLower.includes('computing')) {
-      return [
-        { placement: '1', description: 'cloud computing infrastructure', altText: 'Cloud computing data center' },
-        { placement: '2', description: 'server technology network', altText: 'Network server infrastructure' }
-      ];
-    } else {
-      return [
-        { placement: '1', description: `${keyword} technology`, altText: `${keyword} technology visualization` },
-        { placement: '2', description: `${keyword} innovation`, altText: `${keyword} innovation concept` }
-      ];
-    }
+    // 고사성어 관련 기본 이미지 정보 (IT 관련 제거)
+    return [
+      { placement: '1', description: `${keyword} 한자`, altText: `${keyword} 한자 서예` },
+      { placement: '2', description: '중국 고대 역사', altText: '역사적 배경 이미지' }
+    ];
   }
 
   /**
-   * 이미지 정보 추출 (AI 우선 사용)
+   * 이미지 정보 추출 (마크다운에서 직접 추출, AI 호출 없음)
    * @param {string} content - 마크다운 콘텐츠
-   * @param {string} keyword - 키워드 (선택사항)
-   * @returns {Promise<Array>} 이미지 정보 배열
+   * @returns {Array} 이미지 정보 배열
    */
-  async extractImageInfo(content, keyword = null) {
-    // 키워드가 있으면 AI로 이미지 정보 생성 시도
-    if (keyword) {
-      const aiImageInfo = await this.generateImageInfoWithAI(keyword, content);
-      if (aiImageInfo && aiImageInfo.length > 0) {
-        console.log(`🖼️  AI 생성 이미지 정보: ${aiImageInfo.length}개`);
-        return aiImageInfo;
-      }
-    }
-    
-    // AI 실패시 기존 방식으로 추출
+  extractImageInfoFromContent(content) {
     const imageInfo = [];
     
-    // 더 유연한 이미지 정보 추출 패턴
+    // 마크다운에서 이미지 정보 추출 패턴
     const patterns = [
-      // 패턴 1: 표준 형식
       /Image (\d+) Placement:.*?\*\*Image \1 Description.*?:\*\* \[(.*?)\].*?\*\*Image \1 ALT Text:\*\* \[(.*?)\]/gs,
-      // 패턴 2: 간소화된 형식
       /\*\*Image (\d+) Description.*?:\*\* \[(.*?)\].*?\*\*Image \1 ALT Text:\*\* \[(.*?)\]/gs,
-      // 패턴 3: 더 유연한 형식
       /Image (\d+).*?Description.*?:\s*\[(.*?)\].*?ALT Text.*?:\s*\[(.*?)\]/gs
     ];
     
@@ -423,16 +398,18 @@ IMPORTANT: Respond ONLY in English. Use only the format above.
         });
       }
       
-      // 패턴을 찾았으면 중단
       if (imageInfo.length > 0) {
         break;
       }
     }
     
-    // 이미지 정보를 찾지 못한 경우 기본값 생성
+    // 이미지 정보를 찾지 못한 경우 기본값 생성 (AI 호출 없음)
     if (imageInfo.length === 0) {
       console.warn('⚠️  이미지 정보를 찾을 수 없어 기본 이미지를 생성합니다.');
-      return this.getFallbackImageInfo(keyword || 'technology');
+      return [
+        { placement: '1', description: '고사성어 한자', altText: '고사성어 한자 이미지' },
+        { placement: '2', description: '역사적 배경', altText: '역사적 배경 이미지' }
+      ];
     }
     
     console.log(`🖼️  추출된 이미지 정보: ${imageInfo.length}개`);
@@ -824,12 +801,20 @@ IMPORTANT: Respond ONLY in English. Use only the format above.
   }
 
   /**
-   * Gemini API로 이미지 검색어 생성
+   * Gemini API로 이미지 검색어 생성 (사용 안 함 - AI 호출 최소화)
    * @param {string} description - 이미지 설명
    * @param {number} index - 이미지 인덱스
    * @returns {Promise<string>} 검색어
    */
   async generateImageSearchQuery(description, index) {
+    // AI 호출 최소화를 위해 사용하지 않음
+    return this.generateFallbackSearchQuery(description, index);
+  }
+  
+  /**
+   * @deprecated 사용 안 함 - AI 호출 최소화
+   */
+  async _generateImageSearchQuery_OLD(description, index) {
     try {
       const { GoogleGenerativeAI } = await import('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(config.gemini.apiKey);
@@ -898,17 +883,17 @@ Generate ONLY the search query for variation ${variationIndex}, no explanation:
    * @returns {string} 폴백 검색어
    */
   generateFallbackSearchQuery(description, index) {
+    // 고사성어 관련 검색어 (IT 관련 제거)
     const variations = [
-      `${description} technology`,
-      `${description} data`,
-      `${description} infrastructure`,
-      `${description} dashboard`,
-      `${description} innovation`,
-      `${description} network`,
-      `${description} security`,
-      `${description} development`,
-      `${description} system`,
-      `${description} platform`
+      `${description} 한자`,
+      `${description} 서예`,
+      `중국 고대 역사`,
+      `전통 문화`,
+      `역사적 배경`,
+      `고사성어 의미`,
+      `사자성어`,
+      `한자 서예`,
+      `역사 교훈`
     ];
     
     // 시간 기반 랜덤 선택으로 더 다양한 이미지 확보
@@ -919,11 +904,11 @@ Generate ONLY the search query for variation ${variationIndex}, no explanation:
   }
 
   /**
-   * Gemini API로 대안 검색어 생성
+   * Gemini API로 대안 검색어 생성 (사용 안 함 - AI 호출 최소화)
    * @param {string} description - 이미지 설명
    * @returns {Promise<string>} 대안 검색어
    */
-  async generateFallbackSearchQuery(description) {
+  async generateFallbackSearchQuery_AI(description) {
     try {
       const { GoogleGenerativeAI } = await import('@google/generative-ai');
       const genAI = new GoogleGenerativeAI(config.gemini.apiKey);
@@ -954,7 +939,60 @@ Generate only the search term:
   }
 
   /**
-   * 다중 소스에서 고품질 이미지 URL 가져오기
+   * 간단한 방식으로 이미지 URL 가져오기 (AI 호출 없음)
+   * @param {Array} imageInfo - 이미지 정보 배열
+   * @param {string} keyword - 키워드
+   * @returns {Promise<Array>} 이미지 URL 배열
+   */
+  async fetchImageUrlsSimple(imageInfo, keyword) {
+    const imageUrls = [];
+
+    for (let i = 0; i < imageInfo.length; i++) {
+      const info = imageInfo[i];
+      
+      try {
+        console.log(`🖼️  이미지 ${i + 1} 검색 중: "${info.description || keyword}"`);
+        
+        // 간단한 키워드 기반 검색 (AI 호출 없음)
+        const searchQuery = info.description || `${keyword} 한자` || '고사성어';
+        const imageResult = await this.imageSearcher.searchImage(searchQuery, i);
+        
+        if (imageResult && imageResult.url) {
+          console.log(`✅ 이미지 검색 성공: ${imageResult.source}`);
+          imageUrls.push({
+            url: imageResult.url,
+            alt: info.altText || imageResult.alt,
+            source: imageResult.source,
+            attribution: imageResult.attribution
+          });
+        } else {
+          // 실패시 기본 이미지
+          const fallbackResult = await this.imageSearcher.getRandomImage(searchQuery);
+          imageUrls.push({
+            url: fallbackResult.url,
+            alt: info.altText || fallbackResult.alt,
+            source: fallbackResult.source,
+            attribution: fallbackResult.attribution
+          });
+        }
+      } catch (error) {
+        console.error(`❌ 이미지 처리 오류:`, error.message);
+        const fallbackResult = await this.imageSearcher.getRandomImage(keyword || '고사성어');
+        imageUrls.push({
+          url: fallbackResult.url,
+          alt: info.altText || fallbackResult.alt,
+          source: fallbackResult.source,
+          attribution: fallbackResult.attribution
+        });
+      }
+    }
+
+    console.log(`✅ 최종 이미지 ${imageUrls.length}개 준비 완료`);
+    return imageUrls;
+  }
+
+  /**
+   * 다중 소스에서 고품질 이미지 URL 가져오기 (기존 메서드, 사용 안 함)
    * @param {Array} imageInfo - 이미지 정보 배열
    * @returns {Promise<Array>} 이미지 URL 배열
    */
